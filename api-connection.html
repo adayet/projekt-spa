@@ -1,0 +1,64 @@
+<html lang='en'>
+<head>
+	<title>Airly App</title>
+	<meta charset="UTF-8">
+	<script src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+	
+	<input type="search" id="address-input" class='address-input' placeholder="Wybierz lokację" />
+	<div id='app'></div>
+	
+	<script>
+		var app = new Vue({
+			el: '#app',
+			data: {
+				city:'',
+				country:'',
+				current: {},
+				history:{},
+				forecast:{},
+				placesAutocomplete : places({
+					appId: 'plZPOBCP5Q3T',
+					apiKey: 'c1f1ec07ed62d4a064179ffe3bed383a',
+					container: document.querySelector('#address-input')
+				  })
+			},
+			created: function() {
+				this.load_data({
+								'city':'Warszawa',
+								'country':'Polska',
+								'latlng': {'lat': 52.2370,'lng':21.0175}
+								});
+				 this.placesAutocomplete.on('change', e => this.load_data(e.suggestion));
+			},
+			methods: {
+				load_data: function(loc_data) {
+					this.city = loc_data.city.values;
+					this.country = loc_data.country;
+					url = `https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`;
+					var xhr = new XMLHttpRequest();
+					xhr.onreadystatechange = function() {
+						if (xhr.readyState == 4 && xhr.status == 200) {
+							var json_data = JSON.parse(xhr.responseText);
+							this.current = json_data.current;
+							this.localStorage = json_data.current;
+							console.log(this.current)
+							console.log(this.localStorage)
+						}
+					}
+					xhr.open("GET", url);
+					xhr.setRequestHeader('Accept', 'application/json');
+					xhr.setRequestHeader('apikey', 'ALA45rSZm5sGrZ9I4ibJUq1U21O82AKR');
+					xhr.send();
+					
+				}
+			}
+		});
+				
+	</script>
+</body>
+
+</html>
