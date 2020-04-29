@@ -8,10 +8,10 @@
                 <div class="col-lg-6">
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <i class="fas fa-search fa-search-box"></i>
+                        <input type="search" id="address-input" class="address-input" placeholder="Wpisz nazwę miejscowości..." style="size:50px">
                         </div>
-                        <input type="text" class="form-control search-city-input" placeholder="Wpisz nazwę miejscowości..." aria-label="Username" aria-describedby="basic-addon1">
-                    </div>
+						<button id = "app" v-on:click="getLocation" style="size:20">Dane dla Twojej lokacji</button>
+					</div>
                 </div>
                 <div class="col-lg-6">
                     <div class="row">
@@ -148,13 +148,134 @@
 </div>
 </div>
 </template>
-
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
 <script>
 
 export default {
   name: 'App',
-  data () {
-    return '';
-  }
+  data() {
+	return {}
+    },
+    mounted: function() {
+        let placesAutocomplete = places({
+            appId: 'plZPOBCP5Q3T',
+            apiKey: 'c1f1ec07ed62d4a064179ffe3bed383a',
+            container: document.querySelector('#address-input'),
+            countries: ['pl'],
+            type: ['city']
+            });
+
+        placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
+
+        this.runProcess({
+                        'city':'Warszawa',
+                        'country':'Polska',
+                        'latlng': {'lat': 52.2370,'lng':21.0175}
+        });
+
+        
+    },
+
+    methods: {
+
+        fetchAirlyData: function(type,url){
+            var that = this;
+            var airlyXHR = new XMLHttpRequest();
+            airlyXHR.onreadystatechange = function() {
+                if (airlyXHR.readyState == 4 && airlyXHR.status == 200) {
+                    let json_data = JSON.parse(airlyXHR.responseText);
+                    if (type=='measurements'){
+                        that.getPollutionData(json_data)
+                    } else {
+                        that.getInstaData(json_data)
+                    }
+                    
+                }
+            };
+
+            airlyXHR.open("GET", url);
+            airlyXHR.setRequestHeader('Accept', 'application/json');
+            airlyXHR.setRequestHeader('apikey', 'ALA45rSZm5sGrZ9I4ibJUq1U21O82AKR');
+            airlyXHR.send()
+        },
+
+        fetchWeatherData: function(url){
+            var that = this;
+            var weatherXHR = new XMLHttpRequest();
+            weatherXHR.onreadystatechange = function() {
+                if (weatherXHR.readyState == 4 && weatherXHR.status == 200) {
+                    let json_data = JSON.parse(weatherXHR.responseText);
+                    that.getWeatherData(json_data)
+                }
+            }
+            weatherXHR.open('GET', url );
+            weatherXHR.send();
+        },
+
+        getWeatherData(json_data){
+            var outcome = [];
+            for (let i = 0; i < 8; i++){
+                var row = json_data.list[i]
+                var rain_data = 0
+                if (typeof row.main.rain != "undefined"){
+                    rain_data = row.main.rain("3h")
+                }
+                outcome.push({ "date" : row.dt_txt,
+                            "temperature": Math.round(row.main.temp - 273),
+                            "pressure": row.main.pressure,
+                            "wind": row.wind.speed,
+                            "rain": rain_data
+                })
+            }
+            console.log(outcome)
+            return outcome
+        },
+
+        getInstaData :function(json_data){
+            console.log(json_data)
+        },
+
+        getPollutionData: function(json_data){
+            let outcome = [];
+            for (let i =2; i <24;i+=3){
+                let row = json_data.forecast[i]
+                outcome.push({
+                                "date": row.fromDateTime.slice(0,10) + " " + row.fromDateTime.slice(11,19),
+                                "PM25":row.values[0].value,
+                                "PM10": row.values[1].value,
+                                "PM25%": row.standards[0].percent,
+                                "PM10%": row.standards[1].percent
+                })
+            }
+            console.log(outcome)
+            return outcome
+        },
+
+        runProcess(loc_data){
+            console.log("process runned")
+            let place = {"city": loc_data.city,
+                        "country": loc_data.country}
+            
+            this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&appid=96e1f29b74494a9d9469860a9ff96f14`);
+            this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`);
+            this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
+        },
+        /* function checking geolocation and runing getCoords */
+        getLocation: function() {
+            if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(this.getCoords);
+            } else {
+            console.log("Geolocation is not supported by this browser.");
+            }
+            this.placesAutocomplete.setVal('')
+        },
+        /*function retreiving coordinates for geolocation and running data load*/
+        getCoords : function(position){
+            var data_arg = {"latlng": {"lat": position.coords.latitude,
+                                        "lng": position.coords.longitude}
+                                }
+            this.runProcess(data_arg)
+        }
+    }
 }
 </script>
