@@ -31,13 +31,13 @@
                     <div class="card card-chart">
                         <div class="card-header">
                             <h4 class="card-category">Pogoda</h4>
-                            <h1 class="card-title">Kraków, PL</h1>
+                            <h1 class="card-title">{{city}}, {{country}}</h1>
                         </div>
                         <div class="card-body">
                             <div class="water-details">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <span class="temperature">17°C</span>
+                                        <span class="temperature">{{current_temp}}°C</span>
                                         <i class="tim-icons icon-heart-2" style="font-size: 4em;margin-top: -30px; margin-left: 10px "></i>
                                     </div>
                                 </div>
@@ -148,13 +148,18 @@
 </div>
 </div>
 </template>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
 
 export default {
   name: 'App',
   data() {
-	return {}
+	return {
+        city:"",
+        country:"",
+        current_temp:10
+    }
     },
     mounted: function() {
         let placesAutocomplete = places({
@@ -227,12 +232,13 @@ export default {
                             "rain": rain_data
                 })
             }
+            this.current_temp = outcome[0].temperature
             console.log(outcome)
             return outcome
         },
 
         getInstaData :function(json_data){
-            console.log(json_data)
+            this.city = json_data[0].address.city
         },
 
         getPollutionData: function(json_data){
@@ -257,7 +263,7 @@ export default {
                         "country": loc_data.country}
             
             this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&appid=96e1f29b74494a9d9469860a9ff96f14`);
-            this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`);
+            this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
         },
         /* function checking geolocation and runing getCoords */
