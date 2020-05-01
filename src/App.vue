@@ -10,6 +10,7 @@
                         <div class="input-group-prepend">
                         <input type="search" id="address-input" class="address-input" placeholder="Wpisz nazwę miejscowości..." style="size:50">
                         <button id = "app" v-on:click="getLocation" style="size:20">Dane dla Twojej lokacji</button>
+                        <button v-on:click="addFavourite">Dodaj {{ city }} do ulubionych</button>
                         </div>
 						
 					</div>
@@ -17,9 +18,11 @@
                 <div class="col-lg-6">
                     <div class="row">
                         <div class="col-sm-12 text-right">
-                            <a href="#">ZALOGUJ</a>
-                            <span class="divider">|</span>
-                            <a href="#">ZAREJESTRUJ</a>
+                            <select v-model="selected">
+                            <option v-for="favourite in favourites" :key="favourite.miasto">
+                                {{ favourite.miasto }}
+                                </option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -56,7 +59,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <h1>CHART</h1>
+                                <linechart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>
                             </div>
                         </div>
                     </div>
@@ -105,7 +108,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <h1>CHART</h1>
+                                <h1></h1>
                             </div>
                         </div>
                     </div>
@@ -149,6 +152,7 @@
 </div>
 </div>
 </template>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
@@ -163,11 +167,110 @@
     }
 
 */ 
-import barchart from '..\charts.vue'
-import linechart from '..\charts.vue'
-import mixedchart from '..\charts.vue'
+
+let barchart = Vue.component('barchart',{
+        props: ['pollution_dates','pollution_values'],
+        template: `<canvas ref="canvas"></canvas>`,
+        methods:{
+            drawChart:function(){
+                let ctx = this.$refs.canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data:{
+                            labels: this.pollution_dates, 
+                            datasets: [{
+                                label: 'Zanieczyszczenie',
+                                data: this.pollution_values,
+                                //backgroundColor: 'rgb(39, 124, 212)',
+                                borderColor: 'rgb(39, 124, 212)',
+                                fill: 'true',
+                                borderWidth: 3
+                            }]
+                        }
+                    })
+            },
+            mounted(){
+                this.drawChart()
+            }
+        }
+    })
+  
+let linechart = Vue.component('linechart',{
+    props: ['dates','temperature_values'],
+    template: `<canvas ref="canvas"></canvas>`,
+    methods:{
+        drawChart:function(){
+            let ctx = this.$refs.canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: this.dates,
+                    datasets: [{
+                        label: 'Temperatura',
+                        data: this.temperature_values,
+                        backgroundColor: 'rgb(64, 186, 130)',
+                        borderColor: 'rgb(64, 186, 130)',
+                        borderWidth: 5,
+                        fill: 'true'
+                    }]
+                }
+            });
+        
+        }
+    },
+    mounted(){
+        this.drawChart()
+    }
+})
+
+let mixedchart = Vue.component('mixedchart',{
+    props: ['dates','rain_values', 'wind_values'],
+    template: `<canvas ref="canvas"></canvas>`,
+    methods:{
+        drawChart:function(){
+            let ctx = this.$refs.canvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: this.x,
+                        datasets: [{
+                            label: 'Opady',
+                            data: this.rain_values,
+                            //backgroundColor: 'rgb(39, 124, 212)',
+                            borderColor: 'rgb(39, 124, 212)',
+                            fill: 'true',
+                            borderWidth: 3,
+                            order: 2
+                            },
+                            {
+                            label: 'Wiatr',
+                            data: this.wind_values,
+
+                            // Changes this dataset to become a line
+                            type: 'line',
+                            backgroundColor: 'rgb(64, 186, 130)',
+                            borderColor: 'rgb(64, 186, 130)',
+                            borderWidth: 3,
+                            fill:'true',
+                            order:1
+                            }
+                        ]
+                    }
+                });
+        }
+    },
+    mounted(){
+        this.drawChart()
+    }
+})
+
 export default {
   name: 'App',
+  components: {
+      barchart: barchart,
+      mixedchart: mixedchart,
+      linechart: linechart
+  },
   data() {
 	return {
         city : '',
@@ -182,12 +285,17 @@ export default {
         colorPM25: 'green',
         installation : '',
         description:'',
-        dates: this.getWeatherData(json_data).date,
-        rain_values:this.getWeatherData(json_data).rain,
-        wind_values:this.getWeatherData(json_data).wind,
-        temperature_values:this.getWeatherData(json_data).temperature,
-        pollution_dates:this.getPollutionData(json_data).date,
-        pollution_values:this.getPollutionData(json_data).PM25
+        dates: [1,2,3],
+        rain_values: '',
+        wind_values: '',
+        temperature_values: [1,2,3],
+        pollution_dates: '',
+        pollution_values:'',
+        favourites: [{
+            miasto: "",
+            kord: ""
+            }
+        ]
     } 
     },
 
@@ -312,9 +420,11 @@ export default {
             this.country = loc_data.country
             this.coords = [loc_data.latlng.lat, loc_data.latlng.lng]
 
+            /*
             this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&lang=pl&appid=96e1f29b74494a9d9469860a9ff96f14`);
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
+            */
         },
         /* function checking geolocation and runing getCoords */
         getLocation: function() {
@@ -331,6 +441,13 @@ export default {
                                         "lng": position.coords.longitude}
                                 }
             this.runProcess(data_arg)
+        },
+
+        addFavourite : function(favourite) {
+            },
+
+        removeFavourite : function() {
+            this.favourites.splice(index,1);
         }
     }
 }
