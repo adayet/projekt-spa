@@ -77,7 +77,8 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                            <mixedchart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>          </div>
+                                <mixedchart v-bind:dates="dates" v-bind:rain_values="rain_values" v-bind:wind_values="wind_values"/>          
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -113,7 +114,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <barchart v-bind:dates="dates" v-bind:pollution_values="pollution_values"/>
+                               <barchart v-bind:pollution_dates="pollution_dates" v-bind:x="x" v-bind:y="y"/>
                             </div>
                         </div>
                     </div>
@@ -173,33 +174,6 @@
 
 */ 
 
-let barchart = Vue.component('barchart',{
-        props: ['pollution_dates','pollution_values'],
-        template: `<canvas ref="canvas"></canvas>`,
-        methods:{
-            drawChart:function(){
-                let ctx = this.$refs.canvas.getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data:{
-                            labels: this.pollution_dates, 
-                            datasets: [{
-                                label: 'Zanieczyszczenie',
-                                data: this.pollution_values,
-                                //backgroundColor: 'rgb(39, 124, 212)',
-                                borderColor: 'rgb(39, 124, 212)',
-                                fill: 'true',
-                                borderWidth: 3
-                            }]
-                        }
-                    })
-            },
-            mounted(){
-                this.drawChart()
-            }
-        }
-    })
-  
 let linechart = Vue.component('linechart',{
     props: ['dates','temperature_values'],
     template: `<canvas ref="canvas"></canvas>`,
@@ -215,10 +189,15 @@ let linechart = Vue.component('linechart',{
                         data: this.temperature_values,
                         backgroundColor: 'rgb(64, 186, 130)',
                         borderColor: 'rgb(64, 186, 130)',
-                        borderWidth: 5,
+                        borderWidth: 3,
                         fill: 'true'
                     }]
+                },
+                options: {
+                legend: {
+                    display: false
                 }
+            }
             });
         
         }
@@ -227,6 +206,42 @@ let linechart = Vue.component('linechart',{
         this.drawChart()
     }
 })
+
+let barchart = Vue.component('barchart',{
+        props: ['pollution_dates','x', 'y'],
+        template: `<canvas ref="canvas"></canvas>`,
+        methods:{
+            drawChart:function(){
+                let ctx = this.$refs.canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data:{
+                            labels: this.pollution_dates, 
+                            datasets: [{
+                                label: 'PM10',
+                                data: this.x,
+                                borderColor: 'rgb(39, 124, 212)',
+                                fill: 'false',
+                                borderWidth: 3,
+                                order:1
+    
+                            },{
+                                label: 'PM25',
+                                data: this.y,
+                                borderColor: 'rgb(64, 186, 130)',
+                                fill: 'false',
+                                borderWidth: 3,
+                                order:2
+                            }
+                            ]
+                        }
+                    });
+            }
+        },
+        mounted(){
+            this.drawChart()
+        }
+    })
 
 let mixedchart = Vue.component('mixedchart',{
     props: ['dates','rain_values', 'wind_values'],
@@ -237,23 +252,19 @@ let mixedchart = Vue.component('mixedchart',{
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: this.x,
+                        labels: this.dates,
                         datasets: [{
                             label: 'Opady',
                             data: this.rain_values,
-                            //backgroundColor: 'rgb(39, 124, 212)',
                             borderColor: 'rgb(39, 124, 212)',
-                            fill: 'true',
+                            //fill: 'true',
                             borderWidth: 3,
                             order: 2
                             },
                             {
                             label: 'Wiatr',
                             data: this.wind_values,
-
-                            // Changes this dataset to become a line
                             type: 'line',
-                            backgroundColor: 'rgb(64, 186, 130)',
                             borderColor: 'rgb(64, 186, 130)',
                             borderWidth: 3,
                             fill:'true',
@@ -291,10 +302,12 @@ export default {
         installation : '',
         description:'',
         dates: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-        rain_values: [20,14,56,23,85,94,27,42],
+        rain_values: [10,50,56,70,10,15,35,89],
         wind_values: [20,14,56,23,85,94,27,42],
         temperature_values: [20,14,56,23,85,94,27,42],
-        pollution_values: [20,14,56,23,85,94,27,42],
+        x: [20,14,56,23,85,94,27,42],
+        y:[40,64,45,73,90,12,57,22],
+        pollution_dates:['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
         favourites: [{
             miasto: "",
             kord: ""
@@ -326,14 +339,14 @@ export default {
             if(val > 150){
                 this.colorPM10 = 'red'
             } else if (val > 60){
-                this.colorPM10 = 'yelow'
+                this.colorPM10 = 'yellow'
             }
         },
         currentPM25: function(val){
             if(val > 150){
                 this.colorPM25 = 'red'
             } else if (val > 60){
-                this.colorPM25 = 'yelow'
+                this.colorPM25 = 'yellow'
             }
         }
     },
