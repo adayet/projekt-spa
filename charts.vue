@@ -1,5 +1,3 @@
-<script>
-
     Vue.component('barchart',{
         props: ['pollution_dates','pollution_values'],
         template: `<canvas ref="canvas"></canvas>`,
@@ -94,6 +92,3 @@ Vue.component('linechart',{
             this.drawChart()
         }
     })
-    
-
-</script>
