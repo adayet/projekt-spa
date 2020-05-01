@@ -15,26 +15,11 @@
                                 data: this.pollution-values,
                                 //backgroundColor: 'rgb(39, 124, 212)',
                                 borderColor: 'rgb(39, 124, 212)',
-                                fill: 'false',
+                                fill: 'true',
                                 borderWidth: 3
     
                             }]
-                        },
-                        options:{
-                            layout: {
-                            padding: {
-                                left: 25,
-                                right: 25,
-                                top: 50,
-                                bottom: 25
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Prognoza zanieczyszczenia powietrza'
-                            }
-                        }
-                    });
+                        });
             }
         },
         mounted(){
@@ -58,28 +43,9 @@ Vue.component('linechart',{
                     backgroundColor: 'rgb(64, 186, 130)',
                     borderColor: 'rgb(64, 186, 130)',
                     borderWidth: 5,
-                    fill: 'false'
+                    fill: 'true'
                 }]
-            },
-            options: {
-                legend: {
-                    display: false
-                },
-                layout: {
-                    padding: {
-                        left: 25,
-                        right: 25,
-                        top: 50,
-                        bottom: 25
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prognoza temperatur w najbliższych gdzinach'
-}
-            }
-
-        });
+            });
         
         }
     },
@@ -103,7 +69,7 @@ Vue.component('linechart',{
                 data: this.rain-values,
                 //backgroundColor: 'rgb(39, 124, 212)',
                 borderColor: 'rgb(39, 124, 212)',
-                fill: 'false',
+                fill: 'true',
                 borderWidth: 3,
                 order: 2
     
@@ -117,28 +83,11 @@ Vue.component('linechart',{
             backgroundColor: 'rgb(64, 186, 130)',
             borderColor: 'rgb(64, 186, 130)',
             borderWidth: 3,
-            fill:'false',
+            fill:'true',
             order:1
 
         }]
-        },
-        options: {
-                        
-                        layout: {
-                            padding: {
-                                left: 25,
-                                right: 25,
-                                top: 50,
-                                bottom: 25
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Prognoza opadów i prędkości wiatru'
-        }
-                    }
-                      
-                    });
+        });
             }
         },
         mounted(){
