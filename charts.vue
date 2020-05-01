@@ -1,7 +1,7 @@
 <script>
 
     Vue.component('barchart',{
-        props: ['dates','pollution-values'],
+        props: ['pollution_dates','pollution_values'],
         template: `<canvas ref="canvas"></canvas>`,
         methods:{
             drawChart:function(){
@@ -9,10 +9,10 @@
                     new Chart(ctx, {
                         type: 'bar',
                         data:{
-                            labels: this.dates, 
+                            labels: this.pollution_dates, 
                             datasets: [{
                                 label: 'Zanieczyszczenie',
-                                data: this.pollution-values,
+                                data: this.pollution_values,
                                 //backgroundColor: 'rgb(39, 124, 212)',
                                 borderColor: 'rgb(39, 124, 212)',
                                 fill: 'true',
@@ -28,7 +28,7 @@
     })
   
 Vue.component('linechart',{
-    props: ['dates','temperature-values'],
+    props: ['dates','temperature_values'],
     template: `<canvas ref="canvas"></canvas>`,
     methods:{
         drawChart:function(){
@@ -39,7 +39,7 @@ Vue.component('linechart',{
                 labels: this.dates,
                 datasets: [{
                     label: 'Temperatura',
-                    data: this.temperature-values,
+                    data: this.temperature_values,
                     backgroundColor: 'rgb(64, 186, 130)',
                     borderColor: 'rgb(64, 186, 130)',
                     borderWidth: 5,
@@ -55,7 +55,7 @@ Vue.component('linechart',{
 })
 
      Vue.component('mixedchart',{
-        props: ['dates','rain-values', 'wind-values'],
+        props: ['dates','rain_values', 'wind_values'],
         template: `<canvas ref="canvas"></canvas>`,
         methods:{
             drawChart:function(){
@@ -66,7 +66,7 @@ Vue.component('linechart',{
             labels: this.x,
             datasets: [{
                 label: 'Opady',
-                data: this.rain-values,
+                data: this.rain_values,
                 //backgroundColor: 'rgb(39, 124, 212)',
                 borderColor: 'rgb(39, 124, 212)',
                 fill: 'true',
@@ -76,7 +76,7 @@ Vue.component('linechart',{
             },
         { 
             label: 'Wiatr',
-            data: this.wind-values,
+            data: this.wind_values,
 
             // Changes this dataset to become a line
             type: 'line',
