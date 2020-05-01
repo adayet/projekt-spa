@@ -5,25 +5,31 @@
     <div class="main-panel">
         <div class="content">
             <div class="row top-nav">
-                <div class="col-lg-6">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                        <input type="search" id="address-input" class="address-input" placeholder="Wpisz nazwę miejscowości..." style="size:50">
-                        <button id = "app" v-on:click="getLocation" style="size:20">Dane dla Twojej lokacji</button>
-                        <button v-on:click="addFavourite">Dodaj {{ city }} do ulubionych</button>
-                        </div>
-						
-					</div>
-                </div>
-                <div class="col-lg-6">
+                <div class="col-lg-8">
                     <div class="row">
-                        <div class="col-sm-12 text-right">
-                            <select v-model="selected">
+                        <div class="col-sm-7">
+                            <div class="input-group">
+                                    <input type="text" id="address-input" class="form-control search-city-input" placeholder="Wpisz nazwę miejscowości..."> 
+                                </div>
+                        </div>
+                        <div class="col-sm-5">
+                            <button id = "app" v-on:click="getLocation" class="btn btn-primary">Dane dla Twojej lokacji</button>
+                        </div>
+                        </div>
+
+                </div>
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-sm-6 text-right">
+                            <button v-on:click="addFavourite" class="btn btn-primary">Dodaj do ulubionych</button>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                            <select v-model="selected" class="form-control">
                             <option v-for="favourite in favourites" :key="favourite.miasto">
                                 {{ favourite.miasto }}
                                 </option>
                             </select>
-                        </div>
+                            </div>
                     </div>
                 </div>
 
