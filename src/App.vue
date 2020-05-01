@@ -8,9 +8,10 @@
                 <div class="col-lg-6">
                     <div class="input-group">
                         <div class="input-group-prepend">
-                        <input type="search" id="address-input" class="address-input" placeholder="Wpisz nazwę miejscowości..." style="size:50px">
+                        <input type="search" id="address-input" class="address-input" placeholder="Wpisz nazwę miejscowości..." style="size:50">
+                        <button id = "app" v-on:click="getLocation" style="size:20">Dane dla Twojej lokacji</button>
                         </div>
-						<button id = "app" v-on:click="getLocation" style="size:20">Dane dla Twojej lokacji</button>
+						
 					</div>
                 </div>
                 <div class="col-lg-6">
@@ -31,20 +32,20 @@
                     <div class="card card-chart">
                         <div class="card-header">
                             <h4 class="card-category">Pogoda</h4>
-                            <h1 class="card-title">{{city}}, {{country}}</h1>
+                            <h1 class="card-title">{{ city }} , {{ country }}</h1>
                         </div>
                         <div class="card-body">
                             <div class="water-details">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <span class="temperature">{{current_temp}}°C</span>
+                                        <span class="temperature">{{currentTemp}}°C</span>
                                         <i class="tim-icons icon-heart-2" style="font-size: 4em;margin-top: -30px; margin-left: 10px "></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer card-info">
-                            <h4 class="card-title">Częściowe zachmurzenie</h4>
+                            <h4 class="card-title">{{ description }}</h4>
                         </div>
                     </div>
                 </div>
@@ -78,17 +79,17 @@
                     <div class="card card-chart">
                         <div class="card-header">
                             <h4 class="card-category">Pomiar zanieczyszczenia*</h4>
-                            <h1 class="card-title"> Kraków, PL</h1>
+                            <h1 class="card-title"> {{ installation }}</h1>
                         </div>
                         <div class="card-body">
                             <div class="water-details pollution">
                                 <div class="row">
                                     <div class="col-6">PM 10</div>
-                                    <div class="col-6">250%</div>
+                                    <div class="col-6" v-bind:style="{color: colorPM10}">{{currentPM10}}%</div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-6">PM 10</div>
-                                    <div class="col-6">120%</div>
+                                    <div class="col-6">PM 2,5</div>
+                                    <div class="col-6" v-bind:style="{color: colorPM25}">{{ currentPM25}}%</div>
                                 </div>
                             </div>
                         </div>
@@ -151,16 +152,37 @@
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
+/*
+	return {
+        city:"",
+        country:"",
+        corrds : "",
+        pollutionData : "",
+        weatherData : "",
+        current_temp: ""
+    }
+
+*/ 
 
 export default {
   name: 'App',
   data() {
 	return {
-        city:"",
-        country:"",
-        current_temp:10
-    }
+        city : '',
+        country: '',
+        corrds : [1,2,3],
+        pollutionData : [{"PM10%": 156, "PM25%": 124}],
+        weatherData : "",
+        currentTemp: 27,
+        currentPM10 : 156,
+        currentPM25 : 124,
+        colorPM10: 'green',
+        colorPM25: 'green',
+        installation : '',
+        description:''
+    } 
     },
+
     mounted: function() {
         let placesAutocomplete = places({
             appId: 'plZPOBCP5Q3T',
@@ -171,14 +193,29 @@ export default {
             });
 
         placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
-
+        /*
         this.runProcess({
                         'city':'Warszawa',
                         'country':'Polska',
                         'latlng': {'lat': 52.2370,'lng':21.0175}
         });
-
-        
+        */
+    },
+    watch:{
+        currentPM10: function(val){
+            if(val > 150){
+                this.colorPM10 = 'red'
+            } else if (val > 60){
+                this.colorPM10 = 'yelow'
+            }
+        },
+        currentPM25: function(val){
+            if(val > 150){
+                this.colorPM25 = 'red'
+            } else if (val > 60){
+                this.colorPM25 = 'yelow'
+            }
+        }
     },
 
     methods: {
@@ -218,6 +255,7 @@ export default {
         },
 
         getWeatherData(json_data){
+            console.log(json_data)
             var outcome = [];
             for (let i = 0; i < 8; i++){
                 var row = json_data.list[i]
@@ -232,13 +270,15 @@ export default {
                             "rain": rain_data
                 })
             }
-            this.current_temp = outcome[0].temperature
-            console.log(outcome)
-            return outcome
+            this.weatherData = outcome
+            this.currentTemp = outcome[0].temperature
+            this.description = json_data.list[0].weather[0].description
         },
 
         getInstaData :function(json_data){
-            this.city = json_data[0].address.city
+            console.log(json_data)
+            var address = json_data[0].address
+            this.installation = address.city + ", " + address.street + " " + address.number
         },
 
         getPollutionData: function(json_data){
@@ -247,22 +287,24 @@ export default {
                 let row = json_data.forecast[i]
                 outcome.push({
                                 "date": row.fromDateTime.slice(0,10) + " " + row.fromDateTime.slice(11,19),
-                                "PM25":row.values[0].value,
-                                "PM10": row.values[1].value,
-                                "PM25%": row.standards[0].percent,
-                                "PM10%": row.standards[1].percent
+                                "PM25Val":row.values[0].value,
+                                "PM10Val": row.values[1].value,
+                                "PM25": row.standards[0].percent,
+                                "PM10": row.standards[1].percent
                 })
             }
-            console.log(outcome)
-            return outcome
+            this.currentPM10 = Math.round(outcome[0].PM10,0)
+            this.currentPM25 = Math.round(outcome[0].PM25,0)
+            this.pollutionData = outcome
         },
 
         runProcess(loc_data){
-            console.log("process runned")
-            let place = {"city": loc_data.city,
-                        "country": loc_data.country}
-            
-            this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&appid=96e1f29b74494a9d9469860a9ff96f14`);
+            console.log(loc_data)
+            this.city = loc_data.name
+            this.country = loc_data.country
+            this.coords = [loc_data.latlng.lat, loc_data.latlng.lng]
+
+            this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&lang=pl&appid=96e1f29b74494a9d9469860a9ff96f14`);
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
         },
