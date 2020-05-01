@@ -2075,10 +2075,9 @@ pre code {
 .form-control {
   display: block;
   width: 100%;
-  height: calc(2.25rem + 2px);
   padding: 0.5rem 0.7rem;
-  font-size: 0.875rem;
-  font-weight: 400;
+  font-size: 1.5rem;
+  font-weight: 300;
   line-height: 1.428571;
   color: rgba(255, 255, 255, 0.8);
   background-color: transparent;
@@ -12771,7 +12770,6 @@ a.text-darker:focus {
   border: none;
   position: relative;
   overflow: hidden;
-  margin: 4px 1px;
   border-radius: 0.4285rem;
   cursor: pointer;
   background: #344675;
@@ -14692,7 +14690,7 @@ fieldset[disabled] .btn-link.active {
 .form-control {
   border-color: #2b3553;
   border-radius: 0.4285rem;
-  font-size: 0.75rem;
+  font-size: 1.3rem;
 }
 
 .form-control:focus {
@@ -16591,7 +16589,7 @@ p.description {
 }
 
 .card-category {
-  font-size: 0.75rem;
+  font-size: 0.95rem;
 }
 
 .blockquote {

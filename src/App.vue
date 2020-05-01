@@ -5,22 +5,31 @@
     <div class="main-panel">
         <div class="content">
             <div class="row top-nav">
-                <div class="col-lg-6">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                        <input type="search" id="address-input" class="address-input" placeholder="Wpisz nazwę miejscowości..." style="size:50">
-                        <button id = "app" v-on:click="getLocation" style="size:20">Dane dla Twojej lokacji</button>
-                        </div>
-						
-					</div>
-                </div>
-                <div class="col-lg-6">
+                <div class="col-lg-8">
                     <div class="row">
-                        <div class="col-sm-12 text-right">
-                            <a href="#">ZALOGUJ</a>
-                            <span class="divider">|</span>
-                            <a href="#">ZAREJESTRUJ</a>
+                        <div class="col-sm-7">
+                            <div class="input-group">
+                                    <input type="text" id="address-input" class="form-control search-city-input" placeholder="Wpisz nazwę miejscowości..."> 
+                                </div>
                         </div>
+                        <div class="col-sm-5">
+                            <button id = "app" v-on:click="getLocation" class="btn btn-primary">Dane dla Twojej lokacji</button>
+                        </div>
+                        </div>
+
+                </div>
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-sm-6 text-right">
+                            <button v-on:click="addFavourite" class="btn btn-primary">Dodaj do ulubionych</button>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                            <select v-model="selected" class="form-control">
+                            <option v-for="favourite in favourites" :key="favourite.miasto">
+                                {{ favourite.miasto }}
+                                </option>
+                            </select>
+                            </div>
                     </div>
                 </div>
 
@@ -56,7 +65,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <h1>CHART</h1>
+                                <linechart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>
                             </div>
                         </div>
                     </div>
@@ -68,8 +77,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <h1>CHART</h1>
-                            </div>
+                            <mixedchart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>          </div>
                         </div>
                     </div>
                 </div>
@@ -105,7 +113,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <h1>CHART</h1>
+                                <barchart v-bind:dates="dates" v-bind:pollution_values="pollution_values"/>
                             </div>
                         </div>
                     </div>
@@ -149,6 +157,7 @@
 </div>
 </div>
 </template>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
@@ -163,11 +172,110 @@
     }
 
 */ 
-import barchart from '..\charts.vue'
-import linechart from '..\charts.vue'
-import mixedchart from '..\charts.vue'
+
+let barchart = Vue.component('barchart',{
+        props: ['pollution_dates','pollution_values'],
+        template: `<canvas ref="canvas"></canvas>`,
+        methods:{
+            drawChart:function(){
+                let ctx = this.$refs.canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data:{
+                            labels: this.pollution_dates, 
+                            datasets: [{
+                                label: 'Zanieczyszczenie',
+                                data: this.pollution_values,
+                                //backgroundColor: 'rgb(39, 124, 212)',
+                                borderColor: 'rgb(39, 124, 212)',
+                                fill: 'true',
+                                borderWidth: 3
+                            }]
+                        }
+                    })
+            },
+            mounted(){
+                this.drawChart()
+            }
+        }
+    })
+  
+let linechart = Vue.component('linechart',{
+    props: ['dates','temperature_values'],
+    template: `<canvas ref="canvas"></canvas>`,
+    methods:{
+        drawChart:function(){
+            let ctx = this.$refs.canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: this.dates,
+                    datasets: [{
+                        label: 'Temperatura',
+                        data: this.temperature_values,
+                        backgroundColor: 'rgb(64, 186, 130)',
+                        borderColor: 'rgb(64, 186, 130)',
+                        borderWidth: 5,
+                        fill: 'true'
+                    }]
+                }
+            });
+        
+        }
+    },
+    mounted(){
+        this.drawChart()
+    }
+})
+
+let mixedchart = Vue.component('mixedchart',{
+    props: ['dates','rain_values', 'wind_values'],
+    template: `<canvas ref="canvas"></canvas>`,
+    methods:{
+        drawChart:function(){
+            let ctx = this.$refs.canvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: this.x,
+                        datasets: [{
+                            label: 'Opady',
+                            data: this.rain_values,
+                            //backgroundColor: 'rgb(39, 124, 212)',
+                            borderColor: 'rgb(39, 124, 212)',
+                            fill: 'true',
+                            borderWidth: 3,
+                            order: 2
+                            },
+                            {
+                            label: 'Wiatr',
+                            data: this.wind_values,
+
+                            // Changes this dataset to become a line
+                            type: 'line',
+                            backgroundColor: 'rgb(64, 186, 130)',
+                            borderColor: 'rgb(64, 186, 130)',
+                            borderWidth: 3,
+                            fill:'true',
+                            order:1
+                            }
+                        ]
+                    }
+                });
+        }
+    },
+    mounted(){
+        this.drawChart()
+    }
+})
+
 export default {
   name: 'App',
+  components: {
+      barchart: barchart,
+      mixedchart: mixedchart,
+      linechart: linechart
+  },
   data() {
 	return {
         city : '',
@@ -182,12 +290,16 @@ export default {
         colorPM25: 'green',
         installation : '',
         description:'',
-        dates: this.getWeatherData(json_data).date,
-        rain_values:this.getWeatherData(json_data).rain,
-        wind_values:this.getWeatherData(json_data).wind,
-        temperature_values:this.getWeatherData(json_data).temperature,
-        pollution_dates:this.getPollutionData(json_data).date,
-        pollution_values:this.getPollutionData(json_data).PM25
+        dates: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        rain_values: [20,14,56,23,85,94,27,42],
+        wind_values: [20,14,56,23,85,94,27,42],
+        temperature_values: [20,14,56,23,85,94,27,42],
+        pollution_values: [20,14,56,23,85,94,27,42],
+        favourites: [{
+            miasto: "",
+            kord: ""
+            }],
+        loc_type : 'search'
     } 
     },
 
@@ -197,7 +309,7 @@ export default {
             apiKey: 'c1f1ec07ed62d4a064179ffe3bed383a',
             container: document.querySelector('#address-input'),
             countries: ['pl'],
-            type: ['city']
+            type: ['city', 'address']
             });
 
         placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
@@ -264,6 +376,10 @@ export default {
 
         getWeatherData(json_data){
             console.log(json_data)
+            this.dates = []
+            this.rain_values = []
+            this.temperature_values = []
+            this.wind_values = []
             var outcome = [];
             for (let i = 0; i < 8; i++){
                 var row = json_data.list[i]
@@ -277,10 +393,19 @@ export default {
                             "wind": row.wind.speed,
                             "rain": rain_data
                 })
+                this.dates.push(row.dt_txt)
+                this.rain_dates.push(rain_data)
+                this.temperature_values.push(Math.round(row.main.temp - 273))
+                this.wind_values.push(row.wind.speed)
             }
+            
             this.weatherData = outcome
             this.currentTemp = outcome[0].temperature
             this.description = json_data.list[0].weather[0].description
+            if (this.loc_type = 'geo'){
+                this.city = outcome.address.city
+                this.country = outcome.address.country
+            }
         },
 
         getInstaData :function(json_data){
@@ -291,6 +416,9 @@ export default {
 
         getPollutionData: function(json_data){
             let outcome = [];
+            this.pollution_dates = []
+            this.pollution_pm10 = []
+            this.pollution_pm25 = []
             for (let i =2; i <24;i+=3){
                 let row = json_data.forecast[i]
                 outcome.push({
@@ -300,21 +428,27 @@ export default {
                                 "PM25": row.standards[0].percent,
                                 "PM10": row.standards[1].percent
                 })
+                this.pollution_dates.push(row.fromDateTime.slice(11,19))
+                this.pollution_pm25.push(row.standards[0].percent)
+                this.pollution_pm10.push(row.standards[1].percent)
             }
             this.currentPM10 = Math.round(outcome[0].PM10,0)
             this.currentPM25 = Math.round(outcome[0].PM25,0)
-            this.pollutionData = outcome
         },
 
         runProcess(loc_data){
-            console.log(loc_data)
-            this.city = loc_data.name
-            this.country = loc_data.country
             this.coords = [loc_data.latlng.lat, loc_data.latlng.lng]
-
+            console.log(loc_data)
+            if (this.loc_type != 'geo'){
+                this.city = loc_data.name
+                this.country = loc_data.country
+            }
+        
+            /*
             this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&lang=pl&appid=96e1f29b74494a9d9469860a9ff96f14`);
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
+            */
         },
         /* function checking geolocation and runing getCoords */
         getLocation: function() {
@@ -323,14 +457,22 @@ export default {
             } else {
             console.log("Geolocation is not supported by this browser.");
             }
-            this.placesAutocomplete.setVal('')
+            this.placesAutocomplete.clear()
         },
         /*function retreiving coordinates for geolocation and running data load*/
         getCoords : function(position){
+            this.loc_type = 'geo'
             var data_arg = {"latlng": {"lat": position.coords.latitude,
                                         "lng": position.coords.longitude}
                                 }
             this.runProcess(data_arg)
+        },
+
+        addFavourite : function(favourite) {
+            },
+
+        removeFavourite : function() {
+            this.favourites.splice(index,1);
         }
     }
 }
