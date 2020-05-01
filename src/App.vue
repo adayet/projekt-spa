@@ -77,8 +77,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <h1>CHART</h1>
-                            </div>
+                            <mixedchart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>          </div>
                         </div>
                     </div>
                 </div>
@@ -114,7 +113,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                                <h1></h1>
+                                <barchart v-bind:dates="dates" v-bind:pollution_values="pollution_values"/>
                             </div>
                         </div>
                     </div>
@@ -291,17 +290,16 @@ export default {
         colorPM25: 'green',
         installation : '',
         description:'',
-        dates: [1,2,3],
-        rain_values: '',
-        wind_values: '',
-        temperature_values: [1,2,3],
-        pollution_dates: '',
-        pollution_values:'',
+        dates: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        rain_values: [20,14,56,23,85,94,27,42],
+        wind_values: [20,14,56,23,85,94,27,42],
+        temperature_values: [20,14,56,23,85,94,27,42],
+        pollution_values: [20,14,56,23,85,94,27,42],
         favourites: [{
             miasto: "",
             kord: ""
-            }
-        ]
+            }],
+        loc_type : 'search'
     } 
     },
 
@@ -311,7 +309,7 @@ export default {
             apiKey: 'c1f1ec07ed62d4a064179ffe3bed383a',
             container: document.querySelector('#address-input'),
             countries: ['pl'],
-            type: ['city']
+            type: ['city', 'address']
             });
 
         placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
@@ -378,6 +376,10 @@ export default {
 
         getWeatherData(json_data){
             console.log(json_data)
+            this.dates = []
+            this.rain_values = []
+            this.temperature_values = []
+            this.wind_values = []
             var outcome = [];
             for (let i = 0; i < 8; i++){
                 var row = json_data.list[i]
@@ -391,10 +393,19 @@ export default {
                             "wind": row.wind.speed,
                             "rain": rain_data
                 })
+                this.dates.push(row.dt_txt)
+                this.rain_dates.push(rain_data)
+                this.temperature_values.push(Math.round(row.main.temp - 273))
+                this.wind_values.push(row.wind.speed)
             }
+            
             this.weatherData = outcome
             this.currentTemp = outcome[0].temperature
             this.description = json_data.list[0].weather[0].description
+            if (this.loc_type = 'geo'){
+                this.city = outcome.address.city
+                this.country = outcome.address.country
+            }
         },
 
         getInstaData :function(json_data){
@@ -405,6 +416,9 @@ export default {
 
         getPollutionData: function(json_data){
             let outcome = [];
+            this.pollution_dates = []
+            this.pollution_pm10 = []
+            this.pollution_pm25 = []
             for (let i =2; i <24;i+=3){
                 let row = json_data.forecast[i]
                 outcome.push({
@@ -414,18 +428,22 @@ export default {
                                 "PM25": row.standards[0].percent,
                                 "PM10": row.standards[1].percent
                 })
+                this.pollution_dates.push(row.fromDateTime.slice(11,19))
+                this.pollution_pm25.push(row.standards[0].percent)
+                this.pollution_pm10.push(row.standards[1].percent)
             }
             this.currentPM10 = Math.round(outcome[0].PM10,0)
             this.currentPM25 = Math.round(outcome[0].PM25,0)
-            this.pollutionData = outcome
         },
 
         runProcess(loc_data){
-            console.log(loc_data)
-            this.city = loc_data.name
-            this.country = loc_data.country
             this.coords = [loc_data.latlng.lat, loc_data.latlng.lng]
-
+            console.log(loc_data)
+            if (this.loc_type != 'geo'){
+                this.city = loc_data.name
+                this.country = loc_data.country
+            }
+        
             /*
             this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&lang=pl&appid=96e1f29b74494a9d9469860a9ff96f14`);
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
@@ -439,10 +457,11 @@ export default {
             } else {
             console.log("Geolocation is not supported by this browser.");
             }
-            this.placesAutocomplete.setVal('')
+            this.placesAutocomplete.clear()
         },
         /*function retreiving coordinates for geolocation and running data load*/
         getCoords : function(position){
+            this.loc_type = 'geo'
             var data_arg = {"latlng": {"lat": position.coords.latitude,
                                         "lng": position.coords.longitude}
                                 }
