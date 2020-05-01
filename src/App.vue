@@ -163,7 +163,9 @@
     }
 
 */ 
-
+import barchart from '..\charts.vue'
+import linechart from '..\charts.vue'
+import mixedchart from '..\charts.vue'
 export default {
   name: 'App',
   data() {
@@ -179,7 +181,13 @@ export default {
         colorPM10: 'green',
         colorPM25: 'green',
         installation : '',
-        description:''
+        description:'',
+        dates: this.getWeatherData(json_data).date,
+        rain_values:this.getWeatherData(json_data).rain,
+        wind_values:this.getWeatherData(json_data).wind,
+        temperature_values:this.getWeatherData(json_data).temperature,
+        pollution_dates:this.getPollutionData(json_data).date,
+        pollution_values:this.getPollutionData(json_data).PM25
     } 
     },
 
