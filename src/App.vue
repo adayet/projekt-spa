@@ -16,7 +16,6 @@
                             <button id = "app" v-on:click="getLocation" class="btn btn-primary">Dane dla Twojej lokacji</button>
                         </div>
                         </div>
-
                 </div>
                 <div class="col-lg-4">
                     <div class="row">
@@ -24,9 +23,9 @@
                             <button v-on:click="addFavourite" class="btn btn-primary">Dodaj do ulubionych</button>
                             </div>
                             <div class="col-sm-6 text-right">
-                            <select v-model="selected" class="form-control">
-                            <option v-for="favourite in favourites" :key="favourite.miasto">
-                                {{ favourite.miasto }}
+                            <select v-model="selected" class="form-control" v-on:change="runFavourite">
+                            <option v-for="(favourite, index) in favourites" :key="favourite.name"  v-bind:value="index" >
+                                {{ favourite.name }}
                                 </option>
                             </select>
                             </div>
@@ -162,6 +161,8 @@
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
+
+Vue.config.silent = true
 /*
 	return {
         city:"",
@@ -173,14 +174,15 @@
     }
 
 */ 
-
+let that = this
 let linechart = Vue.component('linechart',{
-    props: ['dates','temperature_values'],
+    props: ['dates', 'temperature_values'],
     template: `<canvas ref="canvas"></canvas>`,
+    data(){return {dates:this.dates, temperature_values:this.temperature_values}},
     methods:{
         drawChart:function(){
             let ctx = this.$refs.canvas.getContext('2d');
-            new Chart(ctx, {
+            let line = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: this.dates,
@@ -202,8 +204,13 @@ let linechart = Vue.component('linechart',{
         
         }
     },
-    mounted(){
-        this.drawChart()
+    mounted(){this.drawChart()},
+    computed:{
+        func(){
+            this.dates = that.dates
+            this.temperature_values = that.temperature_values
+
+        } 
     }
 })
 
@@ -287,13 +294,16 @@ export default {
       mixedchart: mixedchart,
       linechart: linechart
   },
+  /*
+  zmiany: usunięte pollution_dates, zamiast nich zawsze bierzemy dates
+  x -> pollution_one
+  y -> pollution_two
+  */
   data() {
 	return {
-        city : '',
-        country: '',
+        city : 'Radom',
+        country: 'Poland',
         corrds : [1,2,3],
-        pollutionData : [{"PM10%": 156, "PM25%": 124}],
-        weatherData : "",
         currentTemp: 27,
         currentPM10 : 156,
         currentPM25 : 124,
@@ -305,14 +315,11 @@ export default {
         rain_values: [10,50,56,70,10,15,35,89],
         wind_values: [20,14,56,23,85,94,27,42],
         temperature_values: [20,14,56,23,85,94,27,42],
-        x: [20,14,56,23,85,94,27,42],
-        y:[40,64,45,73,90,12,57,22],
-        pollution_dates:['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-        favourites: [{
-            miasto: "",
-            kord: ""
-            }],
-        loc_type : 'search'
+        pollution_one: [20,14,56,23,85,94,27,42],
+        pollution_two:[40,64,45,73,90,12,57,22],
+        favourites: [],
+        loc_type : 'search',
+        selected:''
     } 
     },
 
@@ -333,6 +340,13 @@ export default {
                         'latlng': {'lat': 52.2370,'lng':21.0175}
         });
         */
+       /*read_local storage*/
+
+       if (localStorage.hasOwnProperty('favCities')) {
+           this.favourites =[]
+        } else {
+            this.favourites = localStorage.getItem('favCities')
+        }
     },
     watch:{
         currentPM10: function(val){
@@ -392,76 +406,63 @@ export default {
             this.dates = []
             this.rain_values = []
             this.temperature_values = []
-            this.wind_values = []
-            var outcome = [];
+            this.wind_values=[]
             for (let i = 0; i < 8; i++){
                 var row = json_data.list[i]
                 var rain_data = 0
                 if (typeof row.main.rain != "undefined"){
                     rain_data = row.main.rain("3h")
                 }
-                outcome.push({ "date" : row.dt_txt,
-                            "temperature": Math.round(row.main.temp - 273),
-                            "pressure": row.main.pressure,
-                            "wind": row.wind.speed,
-                            "rain": rain_data
-                })
                 this.dates.push(row.dt_txt)
-                this.rain_dates.push(rain_data)
+                this.rain_values.push(rain_data)
                 this.temperature_values.push(Math.round(row.main.temp - 273))
                 this.wind_values.push(row.wind.speed)
             }
-            
-            this.weatherData = outcome
-            this.currentTemp = outcome[0].temperature
+
+            this.currentTemp = this.temperature_values[0]
             this.description = json_data.list[0].weather[0].description
-            if (this.loc_type = 'geo'){
-                this.city = outcome.address.city
-                this.country = outcome.address.country
+            if (this.loc_type == 'geo'){
+                this.city = json_data.city.name
+                this.country = json_data.city.country
             }
+            //console.log(this.temperature_values)
+            //console.log(this.dates)
         },
 
         getInstaData :function(json_data){
-            console.log(json_data)
+            /*console.log(json_data)*/
             var address = json_data[0].address
             this.installation = address.city + ", " + address.street + " " + address.number
         },
 
         getPollutionData: function(json_data){
-            let outcome = [];
-            this.pollution_dates = []
-            this.pollution_pm10 = []
-            this.pollution_pm25 = []
+            this.pollution_one = []
+            this.pollution_two = []
             for (let i =2; i <24;i+=3){
                 let row = json_data.forecast[i]
-                outcome.push({
-                                "date": row.fromDateTime.slice(0,10) + " " + row.fromDateTime.slice(11,19),
-                                "PM25Val":row.values[0].value,
-                                "PM10Val": row.values[1].value,
-                                "PM25": row.standards[0].percent,
-                                "PM10": row.standards[1].percent
-                })
-                this.pollution_dates.push(row.fromDateTime.slice(11,19))
-                this.pollution_pm25.push(row.standards[0].percent)
-                this.pollution_pm10.push(row.standards[1].percent)
+                this.pollution_two.push(row.standards[0].percent)
+                this.pollution_one.push(row.standards[1].percent)
             }
             this.currentPM10 = Math.round(outcome[0].PM10,0)
             this.currentPM25 = Math.round(outcome[0].PM25,0)
         },
 
-        runProcess(loc_data){
+        runProcess(loc_data, type='search'){
+            //console.log('favouriti', loc_data)
             this.coords = [loc_data.latlng.lat, loc_data.latlng.lng]
-            console.log(loc_data)
-            if (this.loc_type != 'geo'){
+            /*console.log(loc_data)*/
+            if (type != 'geo'){
                 this.city = loc_data.name
                 this.country = loc_data.country
+                this.loc_type='search'
+            } else {
+                this.loc_type = 'geo'
             }
         
-            /*
             this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&lang=pl&appid=96e1f29b74494a9d9469860a9ff96f14`);
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
-            */
+    
         },
         /* function checking geolocation and runing getCoords */
         getLocation: function() {
@@ -474,18 +475,37 @@ export default {
         },
         /*function retreiving coordinates for geolocation and running data load*/
         getCoords : function(position){
-            this.loc_type = 'geo'
             var data_arg = {"latlng": {"lat": position.coords.latitude,
                                         "lng": position.coords.longitude}
                                 }
-            this.runProcess(data_arg)
+            this.coords = [position.coords.latitude, position.coords.longitude]
+            this.runProcess(data_arg, type='geo')
         },
 
-        addFavourite : function(favourite) {
-            },
+        addFavourite : function() {
+            if (!this.favourites) {this.favourites=[]}
+            let favouriteCities = []
+            let addition = {'name':this.city, 
+                                        'country':this.country,
+                                    'latlng':{'lat': this.coords[0], 'lng': this.coords[1]}
+                                }
+            for (let i=0; i<this.favourites.length; i++) {
+                favouriteCities.push(this.favourites[i].city)
+            }
+            if (favouriteCities.includes(this.city)){} 
+            else {
+                this.favourites.push(addition)
+            }
+
+            localStorage.setItem('favCities', this.favourites)
+
+        },
 
         removeFavourite : function() {
             this.favourites.splice(index,1);
+        },
+        runFavourite(event) {
+            this.runProcess(this.favourites[event.target.value])
         }
     }
 }
