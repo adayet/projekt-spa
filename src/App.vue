@@ -113,7 +113,7 @@
                         </div>
                         <div class="card-body">
                             <div class="chart-area">
-                               <barchart v-bind:pollution_dates="pollution_dates" v-bind:x="x" v-bind:y="y"/>
+                               <barchart v-bind:dates="dates" v-bind:pollution_one="pollution_one" v-bind:pollution_two="pollution_two"/>
                             </div>
                         </div>
                     </div>
@@ -333,6 +333,7 @@ export default {
             });
 
         placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
+        
         /*
         this.runProcess({
                         'city':'Warszawa',
@@ -343,9 +344,9 @@ export default {
        /*read_local storage*/
 
        if (localStorage.hasOwnProperty('favCities')) {
-           this.favourites =[]
+           this.favourites = JSON.parse(localStorage.getItem('favCities'))  
         } else {
-            this.favourites = localStorage.getItem('favCities')
+            this.favourites =[]
         }
     },
     watch:{
@@ -366,7 +367,6 @@ export default {
     },
 
     methods: {
-
         fetchAirlyData: function(type,url){
             var that = this;
             var airlyXHR = new XMLHttpRequest();
@@ -378,14 +378,17 @@ export default {
                     } else {
                         that.getInstaData(json_data)
                     }
-                    
                 }
             };
 
             airlyXHR.open("GET", url);
             airlyXHR.setRequestHeader('Accept', 'application/json');
-            airlyXHR.setRequestHeader('apikey', 'ALA45rSZm5sGrZ9I4ibJUq1U21O82AKR');
+            airlyXHR.setRequestHeader('apikey', 'jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC');
             airlyXHR.send()
+            /*
+            jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC
+            ALA45rSZm5sGrZ9I4ibJUq1U21O82AKR
+            */
         },
 
         fetchWeatherData: function(url){
@@ -443,8 +446,8 @@ export default {
                 this.pollution_two.push(row.standards[0].percent)
                 this.pollution_one.push(row.standards[1].percent)
             }
-            this.currentPM10 = Math.round(outcome[0].PM10,0)
-            this.currentPM25 = Math.round(outcome[0].PM25,0)
+            this.currentPM10 = Math.round(this.pollution_one[0])
+            this.currentPM25 = Math.round(this.pollution_two[0])
         },
 
         runProcess(loc_data, type='search'){
@@ -458,11 +461,11 @@ export default {
             } else {
                 this.loc_type = 'geo'
             }
-        
+            /*
             this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&lang=pl&appid=96e1f29b74494a9d9469860a9ff96f14`);
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
-    
+            */
         },
         /* function checking geolocation and runing getCoords */
         getLocation: function() {
@@ -471,7 +474,6 @@ export default {
             } else {
             console.log("Geolocation is not supported by this browser.");
             }
-            this.placesAutocomplete.clear()
         },
         /*function retreiving coordinates for geolocation and running data load*/
         getCoords : function(position){
@@ -479,7 +481,7 @@ export default {
                                         "lng": position.coords.longitude}
                                 }
             this.coords = [position.coords.latitude, position.coords.longitude]
-            this.runProcess(data_arg, type='geo')
+            this.runProcess(data_arg, 'geo')
         },
 
         addFavourite : function() {
@@ -490,15 +492,14 @@ export default {
                                     'latlng':{'lat': this.coords[0], 'lng': this.coords[1]}
                                 }
             for (let i=0; i<this.favourites.length; i++) {
-                favouriteCities.push(this.favourites[i].city)
+                favouriteCities.push(this.favourites[i].name)
             }
             if (favouriteCities.includes(this.city)){} 
             else {
                 this.favourites.push(addition)
             }
-
-            localStorage.setItem('favCities', this.favourites)
-
+            localStorage.setItem('favCities', JSON.stringify(this.favourites))
+            console.log('stor', localStorage.getItem('favCities'))
         },
 
         removeFavourite : function() {
