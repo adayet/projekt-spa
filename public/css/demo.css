@@ -97,7 +97,9 @@
 
 .temperature {
   font-size: 4em;
+  align-content: center;
 }
+
 .pollution {
   font-size: 2em;
   text-transform: uppercase;

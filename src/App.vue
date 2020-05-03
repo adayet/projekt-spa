@@ -24,6 +24,7 @@
                             </div>
                             <div class="col-sm-6 text-right">
                             <select v-model="selected" class="form-control" v-on:change="runFavourite">
+                            <option disabled value="">Wybierz...</option>
                             <option v-for="(favourite, index) in favourites" :key="favourite.name"  v-bind:value="index" >
                                 {{ favourite.name }}
                                 </option>
@@ -40,20 +41,19 @@
                     <div class="card card-chart">
                         <div class="card-header">
                             <h4 class="card-category">Pogoda</h4>
-                            <h1 class="card-title">{{ city }} , {{ country }}</h1>
+                            <h1 class="card-title">{{ city }}, {{ country }}</h1>
                         </div>
                         <div class="card-body">
                             <div class="water-details">
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <span class="temperature">{{currentTemp}}°C</span>
-                                        <i class="tim-icons icon-heart-2" style="font-size: 4em;margin-top: -30px; margin-left: 10px "></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer card-info">
-                            <h4 class="card-title">{{ description }}</h4>
+                            <h4 class="card-title m_title" >{{ description }}</h4>
                         </div>
                     </div>
                 </div>
@@ -63,7 +63,7 @@
                             <h5 class="card-category">Prognoza temperatury na najbliższe godziny</h5>
                         </div>
                         <div class="card-body">
-                            <div class="chart-area">
+                            <div>
                                 <linechart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>
                             </div>
                         </div>
@@ -75,7 +75,7 @@
                             <h5 class="card-category">Prognoza opadów i prędkości wiatru</h5>
                         </div>
                         <div class="card-body">
-                            <div class="chart-area">
+                            <div>
                                 <mixedchart v-bind:dates="dates" v-bind:rain_values="rain_values" v-bind:wind_values="wind_values"/>          
                             </div>
                         </div>
@@ -92,12 +92,12 @@
                         <div class="card-body">
                             <div class="water-details pollution">
                                 <div class="row">
-                                    <div class="col-6">PM 10</div>
-                                    <div class="col-6" v-bind:style="{color: colorPM10}">{{currentPM10}}%</div>
+                                    <div class="col-6" style="font-weight: 600">PM10</div>
+                                    <div class="col-6" style="font-weight: 600" v-bind:style="{color: colorPM10}">{{currentPM10}}%</div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-6">PM 2,5</div>
-                                    <div class="col-6" v-bind:style="{color: colorPM25}">{{ currentPM25}}%</div>
+                                    <div class="col-6" style="font-weight: 600">PM2.5</div>
+                                    <div class="col-6" style="font-weight: 600" v-bind:style="{color: colorPM25}">{{ currentPM25}}%</div>
                                 </div>
                             </div>
                         </div>
@@ -112,8 +112,8 @@
                             <h5 class="card-category">Prognoza zanieczyszczenia</h5>
                         </div>
                         <div class="card-body">
-                            <div class="chart-area">
-                               <barchart v-bind:dates="dates" v-bind:pollution_one="pollution_one" v-bind:pollution_two="pollution_two"/>
+                            <div>
+                               <barchart v-bind:dates="dates" v-bind:pollution_one="pollution_one" v-bind:pollution_two="pollution_two" />
                             </div>
                         </div>
                     </div>
@@ -139,16 +139,16 @@
                         <div class="card-body">
                             <div class="tab-content chart-area" id="nav-tabContent">
                                 <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                                    <h1 v-bind:style="{color: condition_color}">{{ conditions }}</h1>
-                                    <h4>{{ warns }}</h4>
+                                    <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
+                                    <h3>{{ warns }}</h3>
                                 </div>
                                 <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
                                     <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
-                                    <h4>{{ warns }}</h4>
+                                    <h3>{{ warns }}</h3>
                                 </div>
                                 <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
-                                    <h3 v-bind:style="{color: condition_color}">{{ conditions }}</h3>
-                                    <h4>{{ warns }}</h4>
+                                    <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
+                                    <h3>{{ warns }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -165,6 +165,9 @@
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
 
+import { Line } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
+
 Vue.config.silent = true
 /*
 	return {
@@ -177,118 +180,157 @@ Vue.config.silent = true
     }
 
 */ 
-let that = this
-let linechart = Vue.component('linechart',{
+let linechart = Vue.component("linechart", {
+    extends: Line,
     props: ['dates', 'temperature_values'],
-    template: `<canvas ref="canvas"></canvas>`,
-    data(){return {dates:this.dates, temperature_values:this.temperature_values}},
-    methods:{
-        drawChart:function(){
-            let ctx = this.$refs.canvas.getContext('2d');
-            let line = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: this.dates,
-                    datasets: [{
-                        label: 'Temperatura',
-                        data: this.temperature_values,
-                        backgroundColor: 'rgb(64, 186, 130)',
-                        borderColor: 'rgb(64, 186, 130)',
-                        borderWidth: 3,
-                        fill: 'true'
-                    }]
-                },
-                options: {
-                legend: {
-                    display: false
-                }
-            }
-            });
-        
+    mounted() {
+        this.renderLineChart(this.dates, this.temperature_values, this.options);
+    },
+    methods: {
+        renderLineChart: function(x, y, options) {
+            this.renderChart(
+                {
+                    labels: x,
+                    datasets: [
+                        {
+                            label: 'Temperatura',
+                            data: y,
+                            backgroundColor: 'rgb(64, 186, 130)',
+                            borderColor: 'rgb(64, 186, 130)',
+                            borderWidth: 3,
+                            fill: 'true'
+                        }
+                    ]       
+                    }, 
+                    {
+                        scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return  value + '°';
+                                }
+                            }
+                        }]
+                    },
+                        legend:{
+                            display:false
+                        },
+                        responsive:true,
+                        maintainAspectRatio: false
+
+                    }
+            );
         }
     },
-    mounted(){this.drawChart()},
-    computed:{
-        func(){
-            this.dates = that.dates
-            this.temperature_values = that.temperature_values
-
-        } 
-    }
-})
-
-let barchart = Vue.component('barchart',{
-        props: ['pollution_dates','x', 'y'],
-        template: `<canvas ref="canvas"></canvas>`,
-        methods:{
-            drawChart:function(){
-                let ctx = this.$refs.canvas.getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data:{
-                            labels: this.pollution_dates, 
-                            datasets: [{
-                                label: 'PM10',
-                                data: this.x,
-                                borderColor: 'rgb(39, 124, 212)',
-                                fill: 'false',
-                                borderWidth: 3,
-                                order:1
-    
-                            },{
-                                label: 'PM25',
-                                data: this.y,
-                                borderColor: 'rgb(64, 186, 130)',
-                                fill: 'false',
-                                borderWidth: 3,
-                                order:2
-                            }
-                            ]
-                        }
-                    });
-            }
-        },
-        mounted(){
-            this.drawChart()
+    watch: {
+        temperature_values: function() {
+            this.renderLineChart(this.dates, this.temperature_values, this.options);
         }
-    })
+    }
+});
 
-let mixedchart = Vue.component('mixedchart',{
+let barchart = Vue.component("barchart", {
+    extends: Bar,
+    props: ['dates','pollution_one', 'pollution_two'],
+    
+    mounted() {
+        this.renderBarChart(this.dates, this.pollution_one, this.pollution_two);
+    },
+    methods: {
+        renderBarChart: function(x, y1, y2) {
+            this.renderChart(
+                {
+                    labels: x,
+                    datasets: [
+                        {
+                            label: 'PM10',
+                            data: y1,
+                            borderColor: 'rgb(39, 124, 212)',
+                            borderWidth: 3,
+                            fill: 'true', 
+                        },
+                        {
+                            label: 'PM25',
+                                data: y2,
+                                borderColor: 'rgb(64, 186, 130)',
+                                fill: 'true',
+                                borderWidth: 3
+                        }
+                    ]
+                },
+                {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                            }
+                        }]
+                    },
+                        responsive:true,
+                        maintainAspectRatio: false     
+                }
+            );
+        }
+    },
+    watch: {
+        pollution_one: function() {
+            this.renderBarChart(this.dates, this.pollution_one, this.pollution_two);
+        }
+    }
+});
+
+let mixedchart = Vue.component("mixedchart", {
+    extends: Bar,
     props: ['dates','rain_values', 'wind_values'],
-    template: `<canvas ref="canvas"></canvas>`,
-    methods:{
-        drawChart:function(){
-            let ctx = this.$refs.canvas.getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: this.dates,
-                        datasets: [{
+    mounted() {
+        this.renderMixedChart(this.dates, this.rain_values, this.wind_values);
+    },
+    methods: {
+        renderMixedChart: function(x, y1, y2) {
+            this.renderChart(
+                {
+                    labels: x,
+                    datasets: [
+                        {
                             label: 'Opady',
-                            data: this.rain_values,
+                            data: y1,
                             borderColor: 'rgb(39, 124, 212)',
                             //fill: 'true',
                             borderWidth: 3,
                             order: 2
-                            },
-                            {
+                        },
+                        {
                             label: 'Wiatr',
-                            data: this.wind_values,
+                            data: y2,
                             type: 'line',
                             borderColor: 'rgb(64, 186, 130)',
                             borderWidth: 3,
                             fill:'true',
                             order:1
-                            }
+                        }
                         ]
-                    }
-                });
+                },
+                {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                            }
+                        }]
+                    },
+                        responsive:true,
+                        maintainAspectRatio: false
+                }
+            );
         }
     },
-    mounted(){
-        this.drawChart()
+    watch: {
+        wind_values: function() {
+            this.renderMixedChart(this.dates, this.rain_values, this.wind_values);
+        }
     }
-})
+});
 
 export default {
   name: 'App',
@@ -304,28 +346,28 @@ export default {
   */
   data() {
 	return {
-        city : 'Radom',
-        country: 'Poland',
+        city : 'Kutno',
+        country: 'Polska',
         corrds : [1,2,3],
-        currentTemp: 27,
-        currentPM10 : 156,
-        currentPM25 : 124,
+        currentTemp: 13,
+        currentPM10 : 14,
+        currentPM25 : 17,
         colorPM10: 'green',
         colorPM25: 'green',
         installation : '',
-        description:'',
-        dates: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        description:'wysokie opady deszczu',
+        dates: ['2020-05-07 13:00', '2020-05-07 16:00', '2020-05-07 19:00', '2020-05-07 22:00', '2020-05-08 01:00', '2020-05-08 04:00', '2020-05-08 07:00', '2020-05-08 10:00'],
         rain_values: [10,50,56,70,10,15,35,89],
         wind_values: [30,14,56,23,85,94,27,42],
         temperature_values: [20,14,56,23,85,94,27,42],
-        pollution_one: [20,14,56,23,85,94,27,42],
-        pollution_two:[40,64,45,73,90,12,57,22],
+        pollution_one: [20,14,12,23,13,30,27,31],
+        pollution_two:[11,13,17,11,10,19,25,15],
         favourites: [],
         loc_type : 'search',
         selected:'',
-        warns:'',
-        condition_color:'white',
-        conditions:'dobre'
+        warns:'Aktualnie występują zbyt duże opady deszczu. Postaraj się zrobić trening w domu. Jak śpiewała Budka Suflera: "...a po nocy przychodzi dzień, a po burzy spokój".',
+        condition_color:'red',
+        conditions:'NIESPRZYJAJĄCE'
     } 
     },
 
@@ -341,11 +383,11 @@ export default {
         placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
         
         
-        this.runProcess({
+        /*this.runProcess({
                         'name':'Warszawa',
                         'country':'Polska',
                         'latlng': {'lat': 52.2370,'lng':21.0175}})
-
+        */
        /*read_local storage*/
 
        if (localStorage.hasOwnProperty('favCities')) {
@@ -360,7 +402,7 @@ export default {
                 this.colorPM10 = 'red'
             } else if (val > 60){
                 this.colorPM10 = 'yellow'
-            } else if(val = 'B/D'){
+            } else if(val = 'b/d'){
                 this.colorPM10 = 'white'
             }
         },
@@ -369,7 +411,7 @@ export default {
                 this.colorPM25 = 'red'
             } else if (val > 60){
                 this.colorPM25 = 'yellow'
-            } else if(val = 'B/D'){
+            } else if(val = 'b/d'){
                 this.colorPM25 = 'white'
             }
         }
@@ -389,7 +431,7 @@ export default {
                     }
                 } else {
                     that.currentPM10 = 'b/d'
-                   that.currentPM25 = 'b/d'
+                    that.currentPM25 = 'b/d'
                    //alert('Niestety, dane odnośnie zanieczyszczenia nie są dostępne dla Twojej lokalizacji')
 
                 }
@@ -397,7 +439,7 @@ export default {
 
             airlyXHR.open("GET", url);
             airlyXHR.setRequestHeader('Accept', 'application/json');
-            airlyXHR.setRequestHeader('apikey', 'ALA45rSZm5sGrZ9I4ibJUq1U21O82AKR');
+            airlyXHR.setRequestHeader('apikey', 'jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC');
             airlyXHR.send()
             /*
             jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC
@@ -442,7 +484,7 @@ export default {
                 this.city = json_data.city.name
                 this.country = json_data.city.country
             }
-            //console.log(this.temperature_values)
+            console.log(this.rain_values)
             //console.log(this.dates)
         },
 
@@ -480,7 +522,9 @@ export default {
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
             
+            this.setConditions('bieganie')
         },
+
         /* function checking geolocation and runing getCoords */
         getLocation: function() {
             if (navigator.geolocation) {
@@ -489,7 +533,7 @@ export default {
             console.log("Geolocation is not supported by this browser.");
             }
         },
-        /*function retreiving coordinates for geolocation and running data load*/
+        /* function retreiving coordinates for geolocation and running data load */
         getCoords : function(position){
             var data_arg = {"latlng": {"lat": position.coords.latitude,
                                         "lng": position.coords.longitude}
@@ -525,7 +569,11 @@ export default {
 
         setConditions(activity){
             console.log(this.temperature_values[0],this.wind_values[0],this.rain_values[0])
-            var pol_avg = (this.currentPM10 + this.currentPM25) /2
+            if (this.currentPM10!="b/d"){
+                var pol_avg = (this.currentPM10 + this.currentPM25) /2
+            } else{
+                var pol_avg = 0
+            }
             var ideal_vals = [20, 20, 0] 
             var values = [this.temperature_values[0],this.wind_values[0],this.rain_values[0]]
             var tab = [Math.abs(ideal_vals[0] - values[0]), 
@@ -533,23 +581,23 @@ export default {
                         Math.abs(ideal_vals[2] - values[2])*3]
             var average = tab.reduce(function(a,b){return a+b})
             var check_vals = {
-                'bieganie': [0, 7, 13, 25],
+                'bieganie': [0, 30, 13, 25],
                 'rower':[0, 8, 15, 27],
                 'street workout': [0, 7, 16 , 28 ]
             }
             console.log('avg',average)
             if (average <= check_vals[activity][1] && pol_avg < 60){
                 this.condition_color = 'dark green'
-                this.conditions = 'bardzo dobre'
+                this.conditions = 'BARDZO DOBRE'
             } else if(average <= check_vals[activity][2] && pol_avg < 100){
                 this.condition_color = 'green'
-                this.conditions ='dobre'
+                this.conditions ='DOBRE'
             } else if (average <= check_vals[activity][3] && pol_avg < 120){
                 this.condition_color = 'yellow'
-                this.conditions ='umiarkowane'
+                this.conditions ='UMIARKOWANE'
             } else {
                 this.condition_color = 'red'
-                this.conditions ='niesprzyjające'
+                this.conditions ='NIESPRZYJAJĄCE'
             }
             this.setWarns(activity)
             
@@ -557,20 +605,23 @@ export default {
         setWarns(activity){
             this.warns = ''
             if(this.temperature_values[0] < 5 || this.temperature_values[0] > 25 ){
-                this.warns += 'Temperatura nie sprzyja uprawianiu aktywności fizycznej. ' 
+                this.warns += 'Temperatura nie sprzyja aktywności fizycznej - zwróć uwagę na odpowiedni strój. ' 
             }
             if(this.currentPM10 > 100 || this.currentPM25 > 100){
-                this.warns += 'Mocno zanieczyszczne powietrze, jesli możesz zostań w domu. '
+                this.warns += 'Uważaj na mocno zanieczyszczne powietrze. Jeśli możesz - zostań w domu. '
             } else if(this.currentPM10 > 60 || this.currentPM25 > 60){
-                this.warns += 'Powietrze jest zanieczyszczone, zalecamy założenie maski antysmogowej. '
+                this.warns += 'Powietrze jest zanieczyszczone - sugerowane jest założenie maski antysmogowej. '
             }
             if(this.rain_values[0] > 4){
-                this.warns += 'Aktalnie wystepuje zbyt silny deszcz. '
+                this.warns += 'Aktualnie występują zbyt duże opady deszczu. Postaraj się zrobić trening w domu. Jak śpiewała Budka Suflera: "...a po nocy przychodzi dzień, a po burzy spokój".'
             } else if(this.rain_values[0] > 0.5){
-                this.warns += 'Uważaj na deszcz. '
+                this.warns += 'Występują umiarkowane opady deszczu - zaopatrz się w nieprzemakalną odzież i gorącą herbatę po powrocie.'
             }
             if (this.wind_values[0] > 60){
-                this.warns += 'Wystepuje silny wiatr, poczekaj na zmianę warunków. '
+                this.warns += 'Występuje zbyt silny wiatr - nie wychodź z domu i zaczekaj na zmianę warunków. '
+            }
+            if (this.temperature_values[0] > 10 && this.temperature_values[0] < 25 && this.rain_values[0] == 0 && this.wind_values[0] < 40 && this.warns.length==0){
+                this.warns += 'Świetna pogoda do uprawiania sportu - i nie tylko! Zabierz swoich bliskich na zewnątrz i do woli korzystajcie z walorów przyrody. Kto wie, kiedy przydarzy się kolejna okazja...'
             }
         }
     }

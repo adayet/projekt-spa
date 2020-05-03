@@ -4,7 +4,6 @@
 * Black Dashboard - v1.0.1
 =========================================================
 
-* Product Page: https://www.creative-tim.com/product/black-dashboard
 * Copyright 2019 Creative Tim (https://www.creative-tim.com)
 
 
@@ -17,6 +16,7 @@
 */
 /*     brand Colors              */
 /* navbar color */
+
 :root {
   --blue: #5e72e4;
   --indigo: #5603ad;
@@ -730,6 +730,22 @@ pre code {
   width: 100%;
   padding-right: 15px;
   padding-left: 15px;
+}
+
+h4.m_title{
+  display: block;
+}
+
+h4.m_title:first-letter {
+  text-transform: uppercase;
+}
+
+.uc{
+  display: block;
+}
+
+.uc.m_title{
+  text-transform: uppercase;
 }
 
 .col {
@@ -16477,9 +16493,21 @@ textarea {
   color: rgba(255, 255, 255, 0.8);
 }
 
+h2 {
+  font-weight: 800;
+  text-align: center;
+  padding-top: 30px;
+  font-size: 2.5rem;
+}
+
+h3 {
+  font-weight: 400;
+  text-align: center;
+  padding: 10px;
+  font-size: 1rem;
+}
+
 h1,
-h2,
-h3,
 h4,
 h5,
 h6 {
