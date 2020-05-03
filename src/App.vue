@@ -128,9 +128,9 @@
                                 <div class="col-sm-6">
                                     <nav>
                                         <div class="nav nav-tabs border-0" id="nav-tab" role="tablist">
-                                            <a class="nav-item nav-link active link-style" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Rower</a>
-                                            <a class="nav-item nav-link link-style" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Bieganie</a>
-                                            <a class="nav-item nav-link link-style" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Street workout</a>
+                                            <a class="nav-item nav-link active link-style" id="nav-home-tab" v-on:click="setConditions('rower')" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Rower</a>
+                                            <a class="nav-item nav-link link-style" id="nav-profile-tab" v-on:click="setConditions('bieganie')" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Bieganie</a>
+                                            <a class="nav-item nav-link link-style" id="nav-contact-tab" v-on:click="setConditions('street workout')" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Street workout</a>
                                         </div>
                                     </nav>
                                 </div>
@@ -139,13 +139,16 @@
                         <div class="card-body">
                             <div class="tab-content chart-area" id="nav-tabContent">
                                 <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                                    <h1>OPCJA 1</h1>
+                                    <h1 v-bind:style="{color: condition_color}">{{ conditions }}</h1>
+                                    <h4>{{ warns }}</h4>
                                 </div>
                                 <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-                                    <h2>OPCJA 2</h2>
+                                    <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
+                                    <h4>{{ warns }}</h4>
                                 </div>
                                 <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
-                                    <h3>OPCJA 3</h3>
+                                    <h3 v-bind:style="{color: condition_color}">{{ conditions }}</h3>
+                                    <h4>{{ warns }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -313,13 +316,16 @@ export default {
         description:'',
         dates: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
         rain_values: [10,50,56,70,10,15,35,89],
-        wind_values: [20,14,56,23,85,94,27,42],
+        wind_values: [30,14,56,23,85,94,27,42],
         temperature_values: [20,14,56,23,85,94,27,42],
         pollution_one: [20,14,56,23,85,94,27,42],
         pollution_two:[40,64,45,73,90,12,57,22],
         favourites: [],
         loc_type : 'search',
-        selected:''
+        selected:'',
+        warns:'',
+        condition_color:'white',
+        conditions:'dobre'
     } 
     },
 
@@ -334,20 +340,19 @@ export default {
 
         placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
         
-        /*
+        
         this.runProcess({
-                        'city':'Warszawa',
+                        'name':'Warszawa',
                         'country':'Polska',
-                        'latlng': {'lat': 52.2370,'lng':21.0175}
-        });
-        */
+                        'latlng': {'lat': 52.2370,'lng':21.0175}})
+
        /*read_local storage*/
 
        if (localStorage.hasOwnProperty('favCities')) {
            this.favourites = JSON.parse(localStorage.getItem('favCities'))  
         } else {
             this.favourites =[]
-        }
+        } 
     },
     watch:{
         currentPM10: function(val){
@@ -355,6 +360,8 @@ export default {
                 this.colorPM10 = 'red'
             } else if (val > 60){
                 this.colorPM10 = 'yellow'
+            } else if(val = 'B/D'){
+                this.colorPM10 = 'white'
             }
         },
         currentPM25: function(val){
@@ -362,6 +369,8 @@ export default {
                 this.colorPM25 = 'red'
             } else if (val > 60){
                 this.colorPM25 = 'yellow'
+            } else if(val = 'B/D'){
+                this.colorPM25 = 'white'
             }
         }
     },
@@ -378,12 +387,17 @@ export default {
                     } else {
                         that.getInstaData(json_data)
                     }
+                } else {
+                    that.currentPM10 = 'b/d'
+                   that.currentPM25 = 'b/d'
+                   //alert('Niestety, dane odnośnie zanieczyszczenia nie są dostępne dla Twojej lokalizacji')
+
                 }
-            };
+            }
 
             airlyXHR.open("GET", url);
             airlyXHR.setRequestHeader('Accept', 'application/json');
-            airlyXHR.setRequestHeader('apikey', 'jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC');
+            airlyXHR.setRequestHeader('apikey', 'ALA45rSZm5sGrZ9I4ibJUq1U21O82AKR');
             airlyXHR.send()
             /*
             jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC
@@ -461,11 +475,11 @@ export default {
             } else {
                 this.loc_type = 'geo'
             }
-            /*
+            
             this.fetchWeatherData(`http://api.openweathermap.org/data/2.5/forecast?lat=${loc_data.latlng.lat}&lon=${loc_data.latlng.lng}&lang=pl&appid=96e1f29b74494a9d9469860a9ff96f14`);
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
-            */
+            
         },
         /* function checking geolocation and runing getCoords */
         getLocation: function() {
@@ -507,6 +521,57 @@ export default {
         },
         runFavourite(event) {
             this.runProcess(this.favourites[event.target.value])
+        },
+
+        setConditions(activity){
+            console.log(this.temperature_values[0],this.wind_values[0],this.rain_values[0])
+            var pol_avg = (this.currentPM10 + this.currentPM25) /2
+            var ideal_vals = [20, 20, 0] 
+            var values = [this.temperature_values[0],this.wind_values[0],this.rain_values[0]]
+            var tab = [Math.abs(ideal_vals[0] - values[0]), 
+                        Math.abs(ideal_vals[1] - values[1])*0.2,
+                        Math.abs(ideal_vals[2] - values[2])*3]
+            var average = tab.reduce(function(a,b){return a+b})
+            var check_vals = {
+                'bieganie': [0, 7, 13, 25],
+                'rower':[0, 8, 15, 27],
+                'street workout': [0, 7, 16 , 28 ]
+            }
+            console.log('avg',average)
+            if (average <= check_vals[activity][1] && pol_avg < 60){
+                this.condition_color = 'dark green'
+                this.conditions = 'bardzo dobre'
+            } else if(average <= check_vals[activity][2] && pol_avg < 100){
+                this.condition_color = 'green'
+                this.conditions ='dobre'
+            } else if (average <= check_vals[activity][3] && pol_avg < 120){
+                this.condition_color = 'yellow'
+                this.conditions ='umiarkowane'
+            } else {
+                this.condition_color = 'red'
+                this.conditions ='niesprzyjające'
+            }
+            this.setWarns(activity)
+            
+        },
+        setWarns(activity){
+            this.warns = ''
+            if(this.temperature_values[0] < 5 || this.temperature_values[0] > 25 ){
+                this.warns += 'Temperatura nie sprzyja uprawianiu aktywności fizycznej. ' 
+            }
+            if(this.currentPM10 > 100 || this.currentPM25 > 100){
+                this.warns += 'Mocno zanieczyszczne powietrze, jesli możesz zostań w domu. '
+            } else if(this.currentPM10 > 60 || this.currentPM25 > 60){
+                this.warns += 'Powietrze jest zanieczyszczone, zalecamy założenie maski antysmogowej. '
+            }
+            if(this.rain_values[0] > 4){
+                this.warns += 'Aktalnie wystepuje zbyt silny deszcz. '
+            } else if(this.rain_values[0] > 0.5){
+                this.warns += 'Uważaj na deszcz. '
+            }
+            if (this.wind_values[0] > 60){
+                this.warns += 'Wystepuje silny wiatr, poczekaj na zmianę warunków. '
+            }
         }
     }
 }
