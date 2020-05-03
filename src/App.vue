@@ -1,154 +1,148 @@
 <template>
-  <div id="app">
-
-<div class="wrapper">
-    <div class="main-panel">
-        <div class="content">
-            <div class="row top-nav">
-                <div class="col-lg-8">
-                    <div class="row">
-                        <div class="col-sm-7">
-                            <div class="input-group">
-                                    <input type="text" id="address-input" class="form-control search-city-input" placeholder="Wpisz nazwę miejscowości..."> 
+    <div id="app">
+        <div class="wrapper">
+            <div class="main-panel">
+                <div class="content">
+                    <div class="row top-nav">
+                        <div class="col-lg-8">
+                            <div class="row">
+                                <div class="col-sm-7">
+                                    <div class="input-group">
+                                            <input type="text" id="address-input" class="form-control search-city-input" placeholder="Wpisz nazwę miejscowości..."> 
+                                    </div>
                                 </div>
-                        </div>
-                        <div class="col-sm-5">
-                            <button id = "app" v-on:click="getLocation" class="btn btn-primary">Dane dla Twojej lokacji</button>
-                        </div>
-                        </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="row">
-                        <div class="col-sm-6 text-right">
-                            <button v-on:click="addFavourite" class="btn btn-primary">Dodaj do ulubionych</button>
+                                <div class="col-sm-5">
+                                    <button id = "app" v-on:click="getLocation" class="btn btn-primary">Dane dla Twojej lokacji</button>
+                                </div>
                             </div>
-                            <div class="col-sm-6 text-right">
-                            <select v-model="selected" class="form-control" v-on:change="runFavourite">
-                            <option disabled value="">Wybierz...</option>
-                            <option v-for="(favourite, index) in favourites" :key="favourite.name"  v-bind:value="index" >
-                                {{ favourite.name }}
-                                </option>
-                            </select>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="row">
+                                <div class="col-sm-6 text-right">
+                                    <button v-on:click="addFavourite" class="btn btn-primary">Dodaj do ulubionych</button>
+                                </div>
+                                <div class="col-sm-6 text-right">
+                                    <select v-model="selected" class="form-control" v-on:change="runFavourite">
+                                        <option disabled value="">Wybierz...</option>
+                                        <option v-for="(favourite, index) in favourites" :key="favourite.name"  v-bind:value="index">
+                                        {{ favourite.name }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
+                        </div>
                     </div>
-                </div>
-
-            </div>
-            <div class="row">
-            </div>
-            <div class="row">
-                <div class="col-lg-2">
-                    <div class="card card-chart">
-                        <div class="card-header">
-                            <h4 class="card-category">Pogoda</h4>
-                            <h1 class="card-title">{{ city }}, {{ country }}</h1>
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <div class="card card-chart">
+                                <div class="card-header">
+                                    <h4 class="card-category">Pogoda</h4>
+                                    <h1 class="card-title">{{ city }}, {{ country }}</h1>
+                                </div>
+                                <div class="card-body">
+                                    <div class="water-details">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <span class="temperature">{{currentTemp}}°C</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer card-info">
+                                    <h4 class="card-title m_title" >{{ description }}</h4>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="water-details">
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <span class="temperature">{{currentTemp}}°C</span>
+                        <div class="col-lg-5">
+                            <div class="card card-chart">
+                                <div class="card-header">
+                                    <h5 class="card-category">Prognoza temperatury na najbliższe godziny</h5>
+                                </div>
+                                <div class="card-body">
+                                        <linechart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="card card-chart">
+                                <div class="card-header">
+                                    <h5 class="card-category">Prognoza opadów i prędkości wiatru</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div>
+                                        <mixedchart v-bind:dates="dates" v-bind:rain_values="rain_values" v-bind:wind_values="wind_values"/>          
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer card-info">
-                            <h4 class="card-title m_title" >{{ description }}</h4>
-                        </div>
                     </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="card card-chart">
-                        <div class="card-header">
-                            <h5 class="card-category">Prognoza temperatury na najbliższe godziny</h5>
-                        </div>
-                        <div class="card-body">
-                            <div>
-                                <linechart v-bind:dates="dates" v-bind:temperature_values="temperature_values"/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="card card-chart">
-                        <div class="card-header">
-                            <h5 class="card-category">Prognoza opadów i prędkości wiatru</h5>
-                        </div>
-                        <div class="card-body">
-                            <div>
-                                <mixedchart v-bind:dates="dates" v-bind:rain_values="rain_values" v-bind:wind_values="wind_values"/>          
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-2">
-                    <div class="card card-chart">
-                        <div class="card-header">
-                            <h4 class="card-category">Pomiar zanieczyszczenia*</h4>
-                            <h1 class="card-title"> {{ installation }}</h1>
-                        </div>
-                        <div class="card-body">
-                            <div class="water-details pollution">
-                                <div class="row">
-                                    <div class="col-6" style="font-weight: 600">PM10</div>
-                                    <div class="col-6" style="font-weight: 600" v-bind:style="{color: colorPM10}">{{currentPM10}}%</div>
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <div class="card card-chart">
+                                <div class="card-header">
+                                    <h4 class="card-category">Pomiar zanieczyszczenia*</h4>
+                                    <h1 class="card-title"> {{ installation }}</h1>
                                 </div>
-                                <div class="row">
-                                    <div class="col-6" style="font-weight: 600">PM2.5</div>
-                                    <div class="col-6" style="font-weight: 600" v-bind:style="{color: colorPM25}">{{ currentPM25}}%</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer card-info">
-                            <h4 class="card-title">*Według dobowej normy WHO</h4>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="card card-chart">
-                        <div class="card-header">
-                            <h5 class="card-category">Prognoza zanieczyszczenia</h5>
-                        </div>
-                        <div class="card-body">
-                            <div>
-                               <barchart v-bind:dates="dates" v-bind:pollution_one="pollution_one" v-bind:pollution_two="pollution_two" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="card card-chart">
-                        <div class="card-header ">
-                            <div class="row">
-                                <div class="col-sm-6 text-left">
-                                    <h5 class="card-category">Warunki do uprawiania sportu</h5>
-                                </div>
-                                <div class="col-sm-6">
-                                    <nav>
-                                        <div class="nav nav-tabs border-0" id="nav-tab" role="tablist">
-                                            <a class="nav-item nav-link active link-style" id="nav-home-tab" v-on:click="setConditions('rower')" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Rower</a>
-                                            <a class="nav-item nav-link link-style" id="nav-profile-tab" v-on:click="setConditions('bieganie')" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Bieganie</a>
-                                            <a class="nav-item nav-link link-style" id="nav-contact-tab" v-on:click="setConditions('street workout')" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Street workout</a>
+                                <div class="card-body">
+                                    <div class="water-details pollution">
+                                        <div class="row">
+                                            <div class="col-6" style="font-weight: 600">PM10</div>
+                                            <div class="col-6" style="font-weight: 600" v-bind:style="{color: colorPM10}">{{currentPM10}}%</div>
                                         </div>
-                                    </nav>
+                                        <div class="row">
+                                            <div class="col-6" style="font-weight: 600">PM2.5</div>
+                                            <div class="col-6" style="font-weight: 600" v-bind:style="{color: colorPM25}">{{ currentPM25}}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer card-info">
+                                    <h4 class="card-title">*Według dobowej normy WHO</h4>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <div class="tab-content chart-area" id="nav-tabContent">
-                                <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                                    <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
-                                    <h3>{{ warns }}</h3>
+                        <div class="col-lg-5">
+                            <div class="card card-chart">
+                                <div class="card-header">
+                                    <h5 class="card-category">Prognoza zanieczyszczenia</h5>
                                 </div>
-                                <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-                                    <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
-                                    <h3>{{ warns }}</h3>
+                                <div class="card-body">
+                                    <barchart v-bind:dates="dates" v-bind:pollution_one="pollution_one" v-bind:pollution_two="pollution_two" />
                                 </div>
-                                <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
-                                    <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
-                                    <h3>{{ warns }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="card card-chart">
+                                <div class="card-header ">
+                                    <div class="row">
+                                        <div class="col-sm-6 text-left">
+                                            <h5 class="card-category">Warunki do uprawiania sportu</h5>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <nav>
+                                                <div class="nav nav-tabs border-0" id="nav-tab" role="tablist">
+                                                    <a class="nav-item nav-link active link-style" id="nav-home-tab" v-on:click="setConditions('rower')" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Rower</a>
+                                                    <a class="nav-item nav-link link-style" id="nav-profile-tab" v-on:click="setConditions('bieganie')" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Bieganie</a>
+                                                    <a class="nav-item nav-link link-style" id="nav-contact-tab" v-on:click="setConditions('street workout')" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Street workout</a>
+                                                </div>
+                                            </nav>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content chart-area" id="nav-tabContent">
+                                        <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                                            <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
+                                            <h3>{{ warns }}</h3>
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                                            <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
+                                            <h3>{{ warns }}</h3>
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+                                            <h2 v-bind:style="{color: condition_color}">{{ conditions }}</h2>
+                                            <h3>{{ warns }}</h3>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -157,29 +151,24 @@
             </div>
         </div>
     </div>
-</div>
-</div>
 </template>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
-	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/places.js@1.18.1"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
 <script>
+Vue.config.silent = true;
+
+/* importing required charting library */
 
 import { Line } from 'vue-chartjs'
 import { Bar } from 'vue-chartjs'
 
-Vue.config.silent = true
-/*
-	return {
-        city:"",
-        country:"",
-        corrds : "",
-        pollutionData : "",
-        weatherData : "",
-        current_temp: ""
-    }
 
-*/ 
+/* CHART COMPONENTS */
+/* Weather Forecast Chart */
+
 let linechart = Vue.component("linechart", {
     extends: Line,
     props: ['dates', 'temperature_values'],
@@ -188,39 +177,34 @@ let linechart = Vue.component("linechart", {
     },
     methods: {
         renderLineChart: function(x, y, options) {
-            this.renderChart(
-                {
-                    labels: x,
-                    datasets: [
-                        {
-                            label: 'Temperatura',
-                            data: y,
-                            backgroundColor: 'rgb(64, 186, 130)',
-                            borderColor: 'rgb(64, 186, 130)',
-                            borderWidth: 3,
-                            fill: 'true'
+            this.renderChart({
+                labels: x,
+                datasets: [{
+                    label: 'Temperatura',
+                    data: y,
+                    backgroundColor: 'rgb(64, 186, 130)',
+                    borderColor: 'rgb(64, 186, 130)',
+                    borderWidth: 3,
+                    fill: 'true'
+                }]
+            }, 
+            {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        callback: function(value, index, values) {
+                            return  value + '°';
                         }
-                    ]       
-                    }, 
-                    {
-                        scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                callback: function(value, index, values) {
-                                    return  value + '°';
-                                }
-                            }
-                        }]
-                    },
-                        legend:{
-                            display:false
-                        },
-                        responsive:true,
-                        maintainAspectRatio: false
-
                     }
-            );
+                }]
+            },
+            legend:{
+                display:false
+            },
+            responsive:true,
+            maintainAspectRatio: false
+            });
         }
     },
     watch: {
@@ -230,10 +214,11 @@ let linechart = Vue.component("linechart", {
     }
 });
 
+/* Pollution Forecast Chart */
+
 let barchart = Vue.component("barchart", {
     extends: Bar,
     props: ['dates','pollution_one', 'pollution_two'],
-    
     mounted() {
         this.renderBarChart(this.dates, this.pollution_one, this.pollution_two);
     },
@@ -265,19 +250,19 @@ let barchart = Vue.component("barchart", {
                             ticks: {
                                 beginAtZero: true,
                             }
-                        }]
+                        }],
                     },
                         responsive:true,
                         maintainAspectRatio: false     
                 }
-            );
+            )
         }
     },
     watch: {
         pollution_one: function() {
             this.renderBarChart(this.dates, this.pollution_one, this.pollution_two);
-        }
-    }
+        },
+    },
 });
 
 let mixedchart = Vue.component("mixedchart", {
@@ -296,7 +281,7 @@ let mixedchart = Vue.component("mixedchart", {
                             label: 'Opady',
                             data: y1,
                             borderColor: 'rgb(39, 124, 212)',
-                            //fill: 'true',
+                            fill: 'true',
                             borderWidth: 3,
                             order: 2
                         },
@@ -339,37 +324,32 @@ export default {
       mixedchart: mixedchart,
       linechart: linechart
   },
-  /*
-  zmiany: usunięte pollution_dates, zamiast nich zawsze bierzemy dates
-  x -> pollution_one
-  y -> pollution_two
-  */
-  data() {
-	return {
-        city : 'Kutno',
+data() {
+    return {
+        city: 'Kutno',
         country: 'Polska',
-        corrds : [1,2,3],
+        corrds: [1,2,3],
         currentTemp: 13,
-        currentPM10 : 14,
-        currentPM25 : 17,
+        currentPM10: 14,
+        currentPM25: 17,
         colorPM10: 'green',
         colorPM25: 'green',
-        installation : '',
+        installation: 'Kutno, Mikołajska',
         description:'wysokie opady deszczu',
-        dates: ['2020-05-07 13:00', '2020-05-07 16:00', '2020-05-07 19:00', '2020-05-07 22:00', '2020-05-08 01:00', '2020-05-08 04:00', '2020-05-08 07:00', '2020-05-08 10:00'],
+        dates: ['13:00','16:00','19:00', '22:00', '01:00', '04:00', '07:00', '10:00'],
         rain_values: [10,50,56,70,10,15,35,89],
         wind_values: [30,14,56,23,85,94,27,42],
         temperature_values: [20,14,56,23,85,94,27,42],
         pollution_one: [20,14,12,23,13,30,27,31],
         pollution_two:[11,13,17,11,10,19,25,15],
         favourites: [],
-        loc_type : 'search',
+        loc_type: 'search',
         selected:'',
         warns:'Aktualnie występują zbyt duże opady deszczu. Postaraj się zrobić trening w domu. Jak śpiewała Budka Suflera: "...a po nocy przychodzi dzień, a po burzy spokój".',
         condition_color:'red',
         conditions:'NIESPRZYJAJĄCE'
     } 
-    },
+},
 
     mounted: function() {
         let placesAutocomplete = places({
@@ -379,22 +359,13 @@ export default {
             countries: ['pl'],
             type: ['city', 'address']
             });
+            placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
 
-        placesAutocomplete.on('change', e => this.runProcess(e.suggestion));
-        
-        
-        /*this.runProcess({
-                        'name':'Warszawa',
-                        'country':'Polska',
-                        'latlng': {'lat': 52.2370,'lng':21.0175}})
-        */
-       /*read_local storage*/
-
-       if (localStorage.hasOwnProperty('favCities')) {
-           this.favourites = JSON.parse(localStorage.getItem('favCities'))  
-        } else {
-            this.favourites =[]
-        } 
+            if (localStorage.hasOwnProperty('favCities')) {
+                this.favourites = JSON.parse(localStorage.getItem('favCities'))  
+                } else {
+                    this.favourites =[]
+                } 
     },
     watch:{
         currentPM10: function(val){
@@ -402,21 +373,25 @@ export default {
                 this.colorPM10 = 'red'
             } else if (val > 60){
                 this.colorPM10 = 'yellow'
-            } else if(val = 'b/d'){
+            } else if(val == 'b/d'){
                 this.colorPM10 = 'white'
+            } else {
+                this.colorPM10 = 'green'
             }
+            this.setConditions('bieganie')
         },
         currentPM25: function(val){
             if(val > 150){
                 this.colorPM25 = 'red'
             } else if (val > 60){
                 this.colorPM25 = 'yellow'
-            } else if(val = 'b/d'){
+            } else if(val == 'b/d'){
                 this.colorPM25 = 'white'
+            } else {
+                this.colorPM25 = 'green'
             }
         }
     },
-
     methods: {
         fetchAirlyData: function(type,url){
             var that = this;
@@ -432,18 +407,20 @@ export default {
                 } else {
                     that.currentPM10 = 'b/d'
                     that.currentPM25 = 'b/d'
-                   //alert('Niestety, dane odnośnie zanieczyszczenia nie są dostępne dla Twojej lokalizacji')
-
+                    that.pollution_one = [],
+                    that.pollution_two = []
                 }
             }
 
             airlyXHR.open("GET", url);
             airlyXHR.setRequestHeader('Accept', 'application/json');
-            airlyXHR.setRequestHeader('apikey', 'jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC');
+            airlyXHR.setRequestHeader('apikey', 'pg5noj6zcIxBn4L9rqsjK9fng71mseoT');
             airlyXHR.send()
+
             /*
             jq4HQHD02pGRmpMi6WfAAjQU7ND7eNGC
             ALA45rSZm5sGrZ9I4ibJUq1U21O82AKR
+            pg5noj6zcIxBn4L9rqsjK9fng71mseoT
             */
         },
 
@@ -469,15 +446,14 @@ export default {
             for (let i = 0; i < 8; i++){
                 var row = json_data.list[i]
                 var rain_data = 0
-                if (typeof row.main.rain != "undefined"){
-                    rain_data = row.main.rain("3h")
+                if (typeof(row.rain) != "undefined"){
+                    rain_data = row.rain["3h"]
                 }
-                this.dates.push(row.dt_txt)
+                this.dates.push(row.dt_txt.substring(10,16))
                 this.rain_values.push(rain_data)
                 this.temperature_values.push(Math.round(row.main.temp - 273))
                 this.wind_values.push(row.wind.speed)
             }
-
             this.currentTemp = this.temperature_values[0]
             this.description = json_data.list[0].weather[0].description
             if (this.loc_type == 'geo'){
@@ -485,11 +461,9 @@ export default {
                 this.country = json_data.city.country
             }
             console.log(this.rain_values)
-            //console.log(this.dates)
         },
 
         getInstaData :function(json_data){
-            /*console.log(json_data)*/
             var address = json_data[0].address
             this.installation = address.city + ", " + address.street + " " + address.number
         },
@@ -507,9 +481,7 @@ export default {
         },
 
         runProcess(loc_data, type='search'){
-            //console.log('favouriti', loc_data)
             this.coords = [loc_data.latlng.lat, loc_data.latlng.lng]
-            /*console.log(loc_data)*/
             if (type != 'geo'){
                 this.city = loc_data.name
                 this.country = loc_data.country
@@ -522,7 +494,6 @@ export default {
             this.fetchAirlyData('measurements',`https://airapi.airly.eu/v2/measurements/point?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}`);
             this.fetchAirlyData('installation',`https://airapi.airly.eu/v2/installations/nearest?lat=${loc_data.latlng.lat}&lng=${loc_data.latlng.lng}&maxDistanceKM=-1.0`)
             
-            this.setConditions('bieganie')
         },
 
         /* function checking geolocation and runing getCoords */
@@ -533,6 +504,7 @@ export default {
             console.log("Geolocation is not supported by this browser.");
             }
         },
+
         /* function retreiving coordinates for geolocation and running data load */
         getCoords : function(position){
             var data_arg = {"latlng": {"lat": position.coords.latitude,
@@ -541,14 +513,15 @@ export default {
             this.coords = [position.coords.latitude, position.coords.longitude]
             this.runProcess(data_arg, 'geo')
         },
-
+        /* function  */
         addFavourite : function() {
             if (!this.favourites) {this.favourites=[]}
             let favouriteCities = []
-            let addition = {'name':this.city, 
-                                        'country':this.country,
-                                    'latlng':{'lat': this.coords[0], 'lng': this.coords[1]}
-                                }
+            let addition = {
+                'name':this.city, 
+                'country':this.country,
+                'latlng':{'lat': this.coords[0], 'lng': this.coords[1]}
+            }
             for (let i=0; i<this.favourites.length; i++) {
                 favouriteCities.push(this.favourites[i].name)
             }
@@ -560,9 +533,6 @@ export default {
             console.log('stor', localStorage.getItem('favCities'))
         },
 
-        removeFavourite : function() {
-            this.favourites.splice(index,1);
-        },
         runFavourite(event) {
             this.runProcess(this.favourites[event.target.value])
         },
@@ -571,7 +541,7 @@ export default {
             console.log(this.temperature_values[0],this.wind_values[0],this.rain_values[0])
             if (this.currentPM10!="b/d"){
                 var pol_avg = (this.currentPM10 + this.currentPM25) /2
-            } else{
+            } else {
                 var pol_avg = 0
             }
             var ideal_vals = [20, 20, 0] 
@@ -600,8 +570,8 @@ export default {
                 this.conditions ='NIESPRZYJAJĄCE'
             }
             this.setWarns(activity)
-            
         },
+
         setWarns(activity){
             this.warns = ''
             if(this.temperature_values[0] < 5 || this.temperature_values[0] > 25 ){
@@ -620,7 +590,7 @@ export default {
             if (this.wind_values[0] > 60){
                 this.warns += 'Występuje zbyt silny wiatr - nie wychodź z domu i zaczekaj na zmianę warunków. '
             }
-            if (this.temperature_values[0] > 10 && this.temperature_values[0] < 25 && this.rain_values[0] == 0 && this.wind_values[0] < 40 && this.warns.length==0){
+            if (this.temperature_values[0] > 15 && this.temperature_values[0] < 25 && this.rain_values[0] == 0 && this.wind_values[0] < 40 && this.warns.length==0){
                 this.warns += 'Świetna pogoda do uprawiania sportu - i nie tylko! Zabierz swoich bliskich na zewnątrz i do woli korzystajcie z walorów przyrody. Kto wie, kiedy przydarzy się kolejna okazja...'
             }
         }
