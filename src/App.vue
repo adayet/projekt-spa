@@ -513,7 +513,7 @@ data() {
             this.coords = [position.coords.latitude, position.coords.longitude]
             this.runProcess(data_arg, 'geo')
         },
-        /* function  */
+        
         addFavourite : function() {
             if (!this.favourites) {this.favourites=[]}
             let favouriteCities = []
